@@ -1,4 +1,4 @@
-# Omarchy Customizing
+## Omarchy Customizing
 
 **DO NOT USE THESE SCRIPTS WITHOUT READING THEM FIRST.**
 **YOU HAVE BEEN WARNED!**
@@ -73,13 +73,13 @@ everywhere, I layered my personal customizations on top.
 My bash environment merges Omarchy defaults with my personal configuration:
 
 ```bash
-# All the default Omarchy aliases and functions
+## All the default Omarchy aliases and functions
 source ~/.local/share/omarchy/default/bash/rc
 
-# Traap’s customizations
+## Traap’s customizations
 source ~/git/dotfiles/bash/bashrc
 
-# Don't mess with my .inputrc
+## Don't mess with my .inputrc
 bind -f ~/.inputrc
 ```
 
@@ -89,11 +89,10 @@ I document everything I care about. I’ve been “bashing” since 2014 — alm
 thirteen years of muscle memory and visual habits.
 
 Here are the files that define my login experience:
-
-- https://github.com/Traap/dotfiles/bash/blob/master/bash_profile
-- https://github.com/Traap/dotfiles/bash/blob/master/bashrc
-- https://github.com/Traap/dotfiles/bash/blob/master/bashrc_person
-- https://github.com/Traap/dotfiles/bash/blob/master/inputrc
+- https://github.com/Traap/dotfiles/blob/master/bash/bash_profile
+- https://github.com/Traap/dotfiles/blob/master/bash/bashrc
+- https://github.com/Traap/dotfiles/blob/master/bash/bashrc_person
+- https://github.com/Traap/dotfiles/blob/master/bash/inputrc
 
 These files are non-negotiable. They’re my superpowers.
 
