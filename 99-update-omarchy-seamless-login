@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+# seamlesslogin
+
+if [[ $seamlessLoginFlag == true ]]; then
+  log_info 'Install seamless login.'
+
+else
+  log_info 'seamless login skipped.'
+  return;
+fi
+
+# Install seamless login
+log_info 'sudo cp -v omarchy-seamless-login.service /etc/systemd/system/omarchy-seamless-login.servic'
+sudo cp -v omarchy-seamless-login.service /etc/systemd/system/omarchy-seamless-login.servic
+
+log_info 'sudo systemctl daemon-reexec'
+sudo systemctl daemon-reexec
+
+log_info 'sudo systemctl daemon-reload'
+sudo systemctl daemon-reload
+
+log_info 'sudo systemctl restart omarchy-seamless-login.service'
+sudo systemctl restart omarchy-seamless-login.service

@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+# omarcnychromiumbrowser
+
+if [[ ${omarchyChromiumBrowserFlag:-false} == true ]]; then
+  log_info "Removing Omarcny Chromium Browser..."
+else
+  log_info "Remove Omarchy Chromium Browser skipped."
+  return;
+fi
+
+# Cromium may not not be allowed on some computers.
+if command -v omarchy-chromium &>/dev/null; then
+  sudo pacman -Rns omarchy-chromium
+else
+  log_info "Omarchy Chromium Browser is not installed."
+fi

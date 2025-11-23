@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+echo "INFO: uname -f"
+uname -r
+echo
+
+
+echo "INFO: sudo pacman -Q linux linux-headers | awk '{print $1, $2}'"
+sudo pacman -Q linux linux-headers | awk '{print $1, $2}'
+echo
+
+echo "INFO: ls -l /lib/modules/$(uname -r)/build"
+ls -l /lib/modules/$(uname -r)/build
+echo

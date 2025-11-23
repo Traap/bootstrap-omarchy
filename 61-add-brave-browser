@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+# bravebrowser
+
+if [[ ${braveBrowserFlag:-false} == true ]]; then
+  log_info "Installing Brave Browser..."
+else
+  log_info "Brave Browser skipped."
+  return;
+fi
+
+# Add Brave browser
+if ! command -v curl &>/dev/null; then
+  log_fail "curl command not found — ensure curl is installed."
+  return;
+fi
+
+curl -fsS https://dl.brave.com/install.sh | sh

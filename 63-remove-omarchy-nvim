@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+# omarcnychromiumnvim
+
+if [[ ${omarchyNvimFlag:-false} == true ]]; then
+  log_info "Removing Omarcny Nvim."
+else
+  log_info "Remove Omarcny Nvim skipped."
+fi
+
+# Remove Omarch Nvim
+if command -v omarchy-nvim &>/dev/null; then
+  sudo pacman -Rns omarchy-nvim
+else
+  log_info "Omarchy nvim is not installed."
+fi

@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+# waybar
+
+if [[ ${waybarFlag:-false} == true ]]; then
+  log_info 'Install waybar.'
+else
+  log_info 'waybar skipped.'
+  return;
+fi
+
+# Create a symbolic link to your personal waybar ddotfiles
+log_info 'rm    -frv  ~/.config/waybar'
+rm    -frv  ~/.config/waybar
+
+log_info 'mkdir -pv  ~/config/waybar'
+mkdir -pv  ~/config/waybar
+
+log_info 'ln    -fsv ${dotfiles}/waybar ~/.config/waybar'
+ln    -fsv ${dotfiles}/waybar ~/.config/waybar

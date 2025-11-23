@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+# luarocks packages
+
+if [[ ${luarocksFlag:-false} == true ]]; then
+  log_info "Installing LuaRocks packages..."
+else
+  log_info "LuaRocks packages skipped."
+  return;
+fi
+
+# Install lua rocks
+luarocks_packages=(
+  jsregexp
+  neovim-remote
+)
+
+if command -v luarocks &>/dev/null; then
+  for pkg in "${luarocks_packages[@]}"; do
+    sudo luarocks install "$pkg" || log_warn "Failed to install $pkg"
+  done
+  log_pass "LuaRocks packages processed."
+else
+  log_fail "luarocks not found."
+fi

@@ -1,0 +1,134 @@
+# config
+# {{{ Products to install. Listed alphabetically.
+#
+# Each *Flag controls whether a migration step installs, updates, or configures
+# a specific subsystem. `true` enables the step; `false` skips it.
+#
+
+# Join system to Active Directory domain and configure Kerberos basics.
+adFlag=false
+
+# Re-run AD join steps for repairing broken domain association.
+adRejoinFlag=false
+
+# Deploy personal bash configuration (.bashrc, .bash_profile, login scripts).
+bashrcFlag=false
+
+# Install Brave browser and configure Omarchy integrations.
+braveBrowserFlag=false
+
+# Install system certificates required for enterprise or custom trust chains.
+certificatesFlag=false
+
+# Clone personal Git repositories under $cloneRoot.
+cloneReposFlag=false
+
+# Install Docker and related container packages.
+dockerPacakgesFlag=false
+
+# Install Git-enhanced bash prompt (colors, branch info, icons).
+gitBashPromptFlag=false
+
+# Install/update Traap's Python gits tool and its repository_locations.
+gitsFlag=false
+
+# Install Hyprland window manager and its required dependencies.
+hyprlandFlag=false
+
+# Install LuaRocks for Neovim plugins/modules requiring Lua compilation.
+luarocksFlag=false
+
+# Refresh pacman mirrorlist using reflector for fastest regional mirrors.
+mirrorFlag=false
+
+# Install Node.js runtime (via mise) for frontend builds or tooling.
+nodeJsFlag=false
+
+# Install system-level Neovim dependencies (lsp, treesitter, dev packages).
+nvimsFlag=false
+
+# Install Omarchy's hardened Chromium browser build.
+omarchyChromiumBrowserFlag=false
+
+# Install Omarchy's packaged Neovim (not personal git version).
+omarchyNvimFlag=false
+
+# Install OpenSSL libraries and dev headers.
+openSSLFlag=false
+
+# Remove orphaned packages via pacman -Rns.
+orphanedFlag=false
+
+# Install base terminal-only pacman packages.
+pacmanPackagesFlag=false
+
+# Install Python packages using pip or mise.
+pipPackagesFlag=false
+
+# Install Ruby on Rails via gem or mise-managed Ruby.
+railsFlag=false
+
+# Install Ruby via mise (controlled by rubyVersion).
+rubyFlag=false
+
+# Configure Omarchy seamless-login (kerberos env propagation, ssh-agent, etc.).
+seamlessLoginFlag=false
+
+# Create host SSH keys or import predefined host identities.
+sshHostKeyFlag=false
+
+# Install Starship prompt and deploy its configuration.
+starshipFlag=false
+
+# Create symlinks from dotfiles into $HOME.
+symlinksFlag=false
+
+# Configure ODBC/FreeTDS/MS SQL connectivity.
+sqlFlag=false
+
+# Install TeX Live packages needed for LaTeX toolchain.
+texPackagesFlag=false
+
+# Install ThinkPad hardware support (tlp, sensors, fans, docks, displaylink).
+thinkpadFlag=false
+
+# Install tmux plugins and reload environment.
+tmuxPluginsFlag=false
+
+# Install Waybar and configure status bars (Hyprland/BSPWM).
+waybarFlag=false
+
+# Install AUR packages with yay.
+yayPackagesFlag=false
+
+# -------------------------------------------------------------------------- }}}
+# {{{ Personal customization
+
+# The root personal repositories are cloned to.
+cloneRoot=$HOME/git
+
+# The location of your personal dot files.
+dotfiles=$HOME/git/dotfiles
+
+# The email associated with git commit messages.
+gitEmail="gary.a.howard@mac.com"
+
+# Git user name used for commit messages.
+gitUserName="Traap"
+
+# Ruby version to install with mise.
+rubyVersion='ruby@3'
+
+# Hostname to assign to this Arch system.
+archHostName=Zero
+
+# Primary user for the system.
+archUserName=Traap
+
+# Region passed to reflector for optimizing mirrors.
+reflectorLocation="United States"
+
+# Timezone (informational; not yet applied).
+timezone=America/Los_Angeles
+
+# -------------------------------------------------------------------------- }}}

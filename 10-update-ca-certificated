@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+# certificates
+
+if [[ ${certificatesFlag:-false} == true ]]; then
+  log_info 'Updating certificates plugins.'
+else
+  log_info 'Certificate update skipped.'
+  return;
+fi
+
+# Update certificates
+sudo pacman -S --noconfirm ca-certificates ca-certificates-utils ca-certificates-mozilla
+sudo update-ca-trust

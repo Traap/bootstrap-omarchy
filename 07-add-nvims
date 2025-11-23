@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+# nvims
+
+if [[ ${nvimsFlag:-false} == true ]]; then
+  log_info 'Installing nvims.'
+else
+  log_info 'nvims skipped.'
+  return;
+fi
+
+# Install Traap's nvims - Neovim switching tool
+url="https://raw.githubusercontent.com/Traap/nvims/master/install.sh"
+/bin/bash -c "$(curl -fsSL $url)"

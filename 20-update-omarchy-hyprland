@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+# hyprland
+
+if [[ ${hyprlandFlag:-false} == true ]]; then
+  log_info 'Install hyprland.'
+else
+  log_info 'hyprland skipped.' return;
+  return;
+fi
+
+# Create a symbolic link to your personal hyprland dotfiles
+log_info 'rm    -frv  ~/.config/hypr'
+rm    -frv  ~/.config/hypr
+
+log_info 'mkdir -pv  ~/config/hypr '
+mkdir -pv  ~/config/hypr
+
+log_info 'ln    -fsv ${dotfiles}/hypr ~/.config/hypr'
+ln    -fsv ${dotfiles}/hypr ~/.config/hypr

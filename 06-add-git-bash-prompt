@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+# gitbashprompt
+
+if [[ ${gitBashPromptFlag:-false} == true ]]; then
+  log_info 'Install git bash prompt.'
+else
+  log_info 'git base prompt skipped.'
+  return;
+fi
+
+# Install bash-get-prompt
+src=https://github.com/magicmonty/bash-git-prompt
+dst=~/.bash-git-prompt
+if [[ ! -d $dst ]]; then
+  git clone $src $dst
+else
+  log_info 'git bash prompt aleady installed.'
+fi

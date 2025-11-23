@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+# Ruby
+
+if [[ ${rubyFlag:-false} == true ]]; then
+  log_info "Installing Ruby..."
+else
+  log_info "Ruby skipped."
+  return;
+fi
+
+# Installing Ruby
+if ! command -v mise &>/dev/null; then
+  source /etc/profile.d/mise.sh 2>/dev/null || true
+else
+  log_fail "/etc/profile.d/mish.sh could not be sourced"
+  return;
+fi
+
+if command -v mise &>/dev/null; then
+  mise use -g $rubyVersion && log_pass "Ruby installed via mise."
+else
+  log_fail "mise not found — cannot install Ruby."
+  return;
+fi

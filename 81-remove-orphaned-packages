@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+# orphaned
+
+if [[ ${orphanedFlag:-false} == true ]]; then
+  log_info 'Remove orphaned packages.'
+else
+  log_info 'Orphaned removal skipped.'
+  return;
+fi
+
+# Removed orphaned packages.
+orphans=$(sudo pacman -Qdtq)
+if [[ -n ${orphahs} ]]; then
+  sudo pacman -Rns $orphans
+else
+  echo "No orphans found."
+fi

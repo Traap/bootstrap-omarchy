@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+# NodeJs packages
+
+if [[ ${nodeJsFlag:-false} == true ]]; then
+  log_info "Installing NodeJS packages..."
+else
+  log_info "NodeJS packages skipped."
+  return;
+if
+
+nodejs_packages=(
+  neovim
+  node-gyp
+  "@mermaid-js/mermaid-cli"
+  semver
+  yarn
+)
+
+# Use lastest node version.s
+mise use node
+
+sudo env "PATH=$PATH" npm install -g "${nodejs_packages[@]}" \
+   && log_pass "NodeJS packages installed." \
+   || log_fail "Failed to install NodeJS packages."
+
+sudo env "PATH=$PATH" npm audit fix --force \
+  && log_pass "NodeJS audit." \
+  || log_fail "NodfJS audit failed."

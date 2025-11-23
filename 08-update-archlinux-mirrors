@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+# mirrors
+
+if [[ ${mirrorFlag:-false} == true ]]; then
+  log_info 'Updating archlinux mirrors.'
+else
+  log_info 'Skipping archlinux mirrors.'
+  return;
+fi
+
+# Update mirrors
+log_info 'Initialize pacman-key'
+sudo pacman-key --init
+
+log_info 'Populate pacman-key with archlinux'
+sudo pacman-key --populate archlinux
+
+if ! command -v reflector &>/dev/null; then
+  log_info 'Install reflector'
+  sudo pacman -Sy --noconfirm reflector
+else
+  log_info 'Install reflector skipped'
+fi
+
+log_info 'Updating mirrors to ${reflectorLocation}'
+sudo reflector -c "${reflectorLocation}" -f 12 -l 10 -n 12  --save /etc/pacman.d/mirrorlist

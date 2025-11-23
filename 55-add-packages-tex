@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+# TeX packages
+
+if [[ ${texPackagesFlag:-false} == true ]]; then
+  log_info 'Install TeX packages.'
+else
+  log_info 'TeX packages skipped.'
+  return;
+fi
+
+# Install LaTex packages.
+# NOTE: This is ~3GB
+
+tex_packages=(
+  "texlive-bin"
+  "texlive-binextra"
+  "texlive-core"
+  "texlive-latexextra"
+  "texlive-music"
+  "texlive-pictures"
+  "texlive-plaingeneric"
+  "texlive-publishers"
+  "texlive-science"
+  "texlive-fontsextra"
+)
+
+yay -S --noconfirm "${tex_packages[@]}"
