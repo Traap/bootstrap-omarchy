@@ -6,7 +6,7 @@ if [[ ${nodeJsFlag:-false} == true ]]; then
 else
   log_info "NodeJS packages skipped."
   return;
-if
+fi
 
 nodejs_packages=(
   neovim
