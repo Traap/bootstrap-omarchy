@@ -89,10 +89,10 @@ I document everything I care about. I’ve been “bashing” since 2014 — alm
 thirteen years of muscle memory and visual habits.
 
 Here are the files that define my login experience:
-- https://github.com/Traap/dotfiles/blob/master/bash/bash_profile
-- https://github.com/Traap/dotfiles/blob/master/bash/bashrc
-- https://github.com/Traap/dotfiles/blob/master/bash/bashrc_person
-- https://github.com/Traap/dotfiles/blob/master/bash/inputrc
+- [bash_profile](https://github.com/Traap/dotfiles/blob/master/bash/bash_profile)
+- [bashrc](https://github.com/Traap/dotfiles/blob/master/bash/bashrc)
+- [bashrc_personal](https://github.com/Traap/dotfiles/blob/master/bash/bashrc_personal)
+- [inputrc](https://github.com/Traap/dotfiles/blob/master/bash/inputrc)
 
 These files are non-negotiable. They’re my superpowers.
 
