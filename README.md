@@ -1,5 +1,4 @@
 ## Omarchy Customizing
-
 **DO NOT USE THESE SCRIPTS WITHOUT READING THEM FIRST.**
 **YOU HAVE BEEN WARNED!**
 
@@ -184,5 +183,4 @@ Omarchy uses a Rails-inspired migration system:
 
 Different machines require different tools. `config` declares their identity.
 
-Full config:
-https://github.com/Traap/bootstrap-omarchy/blob/master/config
+Full [config](https://github.com/Traap/bootstrap-omarchy/blob/master/config)
