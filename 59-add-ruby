@@ -16,6 +16,14 @@ else
   return;
 fi
 
+# Remove system Ruby if installed.
+if pacman -Qs ruby >/dev/null 2>&1; then
+  log_info "Removing system Ruby..."
+  sudo pacman -Rns --noconfirm ruby toby-try
+else
+  log_info "System Ruby not installed. Skipping."
+fi
+
 if command -v mise &>/dev/null; then
   mise use -g $rubyVersion && log_pass "Ruby installed via mise."
 else
