@@ -26,9 +26,6 @@ cloneReposFlag=false
 # Install Docker and related container packages.
 dockerPacakgesFlag=false
 
-# Install Git-enhanced bash prompt (colors, branch info, icons).
-gitBashPromptFlag=false
-
 # Install/update Traap's Python gits tool and its repository_locations.
 gitsFlag=false
 
@@ -42,7 +39,7 @@ luarocksFlag=false
 mirrorFlag=false
 
 # Install Node.js runtime (via mise) for frontend builds or tooling.
-nodeJsFlag=false
+nodeJsFlag=true
 
 # Install system-level Neovim dependencies (lsp, treesitter, dev packages).
 nvimsFlag=false
@@ -76,9 +73,6 @@ seamlessLoginFlag=false
 
 # Create host SSH keys or import predefined host identities.
 sshHostKeyFlag=false
-
-# Install Starship prompt and deploy its configuration.
-starshipFlag=false
 
 # Create symlinks from dotfiles into $HOME.
 symlinksFlag=false
