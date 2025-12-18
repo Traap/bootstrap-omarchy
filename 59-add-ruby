@@ -8,14 +8,6 @@ else
   return;
 fi
 
-# Installing Ruby
-if ! command -v mise &>/dev/null; then
-  source /etc/profile.d/mise.sh 2>/dev/null || true
-else
-  log_fail "/etc/profile.d/mish.sh could not be sourced"
-  return;
-fi
-
 # Remove system Ruby if installed.
 if pacman -Qs ruby >/dev/null 2>&1; then
   log_info "Removing system Ruby..."

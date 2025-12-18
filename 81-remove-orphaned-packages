@@ -10,7 +10,7 @@ fi
 
 # Removed orphaned packages.
 orphans=$(sudo pacman -Qdtq)
-if [[ -n ${orphahs} ]]; then
+if [[ -n ${orphans} ]]; then
   sudo pacman -Rns $orphans
 else
   echo "No orphans found."

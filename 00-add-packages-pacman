@@ -11,6 +11,7 @@ fi
 # Install pacman packages.
 
 pacman_packages=(
+  "base-devel"
   "cmake"
   "docker"
   "ghostty"

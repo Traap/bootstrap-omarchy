@@ -38,8 +38,11 @@ luarocksFlag=false
 # Refresh pacman mirrorlist using reflector for fastest regional mirrors.
 mirrorFlag=false
 
+# Add mise
+miseFlag=false
+
 # Install Node.js runtime (via mise) for frontend builds or tooling.
-nodeJsFlag=true
+nodeJsFlag=false
 
 # Install system-level Neovim dependencies (lsp, treesitter, dev packages).
 nvimsFlag=false
@@ -114,7 +117,7 @@ gitUserName="Traap"
 rubyVersion='ruby@3'
 
 # Hostname to assign to this Arch system.
-archHostName=Zero
+archHostName=GSA-M98AXA
 
 # Primary user for the system.
 archUserName=Traap
