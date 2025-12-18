@@ -29,6 +29,9 @@ dockerPacakgesFlag=false
 # Install/update Traap's Python gits tool and its repository_locations.
 gitsFlag=false
 
+# Install Git Bash Prompt
+gitBashPromptFlag=false
+
 # Install Hyprland window manager and its required dependencies.
 hyprlandFlag=false
 
