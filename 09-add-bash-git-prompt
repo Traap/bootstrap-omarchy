@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+# gitbashPrompt
+
+if [[ ${bashGitPromptFlag:-false} == true ]]; then
+  log_info 'Installing Bash Git Prompt.'
+else
+  log_info 'Bash Git Prompt skipped.'
+  return;
+fi
+
+rm -rf ~/.bash-git-prompt
+git clone https://github.com/magicmonty/bash-git-prompt ~/.bash-git-prompt

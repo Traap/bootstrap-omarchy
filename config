@@ -11,6 +11,9 @@ adFlag=false
 # Re-run AD join steps for repairing broken domain association.
 adRejoinFlag=false
 
+# Install Bash Git Prompt
+bashGitPromptFlag=true
+
 # Deploy personal bash configuration (.bashrc, .bash_profile, login scripts).
 bashrcFlag=false
 
@@ -28,9 +31,6 @@ dockerPacakgesFlag=false
 
 # Install/update Traap's Python gits tool and its repository_locations.
 gitsFlag=false
-
-# Install Git Bash Prompt
-gitBashPromptFlag=false
 
 # Install Hyprland window manager and its required dependencies.
 hyprlandFlag=false
