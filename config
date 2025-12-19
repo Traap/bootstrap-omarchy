@@ -71,10 +71,13 @@ pacmanPackagesFlag=false
 # Install Python packages using pip or mise.
 pipPackagesFlag=false
 
+# Install and enable redis for Ruby on Rails applications.
+redisFlag=true
+
 # Install Ruby on Rails via gem or mise-managed Ruby.
 railsFlag=false
 
-# Install Ruby via mise (controlled by rubyVersion).
+# Install Ruby via mise (jkcontrolled by rubyVersion).
 rubyFlag=false
 
 # Configure Omarchy seamless-login (kerberos env propagation, ssh-agent, etc.).

@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+# redis
+
+if [[ ${redisFlag:-false} == true ]]; then
+  log_info 'Install redis.'
+else
+  log_info 'redis skipped.'
+  return;
+fi
+
+pacman_packages=(
+  "redis"
+)
+
+sudo pacman -S --noconfirm --needed "${pacman_packages[@]}"
+sudo systemctl start redis.service

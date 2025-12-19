@@ -9,12 +9,12 @@ else
 fi
 
 # Install pacman packages.
-
 pacman_packages=(
   "base-devel"
   "cmake"
   "docker"
   "ghostty"
+  "less"
   "luacheck"
   "meld"
   "ninja"
@@ -34,5 +34,5 @@ pacman_packages=(
   "which"
 )
 
-sudo pacman -Syu --noconfirm --needed "${pacman_packages[@]}"
+sudo pacman -S --noconfirm --needed "${pacman_packages[@]}"
 sudo pacman -Fy
