@@ -77,6 +77,9 @@ rubyFlag=false
 # Configure Omarchy seamless-login (kerberos env propagation, ssh-agent, etc.).
 seamlessLoginFlag=false
 
+# Install Starship Prompt
+starshipFlag=true
+
 # Create host SSH keys or import predefined host identities.
 sshHostKeyFlag=false
 

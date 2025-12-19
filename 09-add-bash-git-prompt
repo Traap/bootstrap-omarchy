@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# gitbashPrompt
+# bashGitPrompt
 
 if [[ ${bashGitPromptFlag:-false} == true ]]; then
   log_info 'Installing Bash Git Prompt.'

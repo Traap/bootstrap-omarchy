@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+# starshipPrompt
+
+if [[ ${starshipPromptFlag:-false} == true ]]; then
+  log_info 'Installing Starship Prompt.'
+else
+  log_info 'Starship Prompt skipped.'
+  return;
+fi
+
+curl -sS https://starship.rs/install.sh | sh
