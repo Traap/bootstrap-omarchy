@@ -12,7 +12,7 @@ adFlag=false
 adRejoinFlag=false
 
 # Install Bash Git Prompt
-bashGitPromptFlag=true
+bashGitPromptFlag=false
 
 # Deploy personal bash configuration (.bashrc, .bash_profile, login scripts).
 bashrcFlag=false
@@ -81,7 +81,7 @@ rubyFlag=false
 seamlessLoginFlag=false
 
 # Install Starship Prompt
-starshipFlag=true
+starshipFlag=false
 
 # Create host SSH keys or import predefined host identities.
 sshHostKeyFlag=false
