@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+# Microsoft program
+
+if [[ ${microsoftFlag:-false} == true ]]; then
+  log_info 'Install Microsoft programs.'
+else
+  log_info 'Microsoft programs skipped.'
+  return;
+fi
+
+if ! command -v yay &>/dev/null; then
+  git clone https://aur.archlinux.org/yay.git
+  cd yay
+  makepkg -si
+fi
+
+# Install yay packages.
+yay_packages=(
+  "teams"
+  "visual-studio-code-bin"
+)
+
+yay -Sy --noconfirm --needed "${yay_packages[@]}"

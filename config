@@ -38,6 +38,9 @@ hyprlandFlag=false
 # Install LuaRocks for Neovim plugins/modules requiring Lua compilation.
 luarocksFlag=false
 
+# Install Micorsoft program.  NOTE: This flag is not inteded for WSL2.
+microsoftFlag=false
+
 # Refresh pacman mirrorlist using reflector for fastest regional mirrors.
 mirrorFlag=false
 

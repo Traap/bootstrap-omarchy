@@ -8,7 +8,6 @@ else
   return;
 fi
 
-
 if ! command -v yay &>/dev/null; then
   git clone https://aur.archlinux.org/yay.git
   cd yay
@@ -17,6 +16,8 @@ fi
 
 # Install yay packages.
 yay_packages=(
+  "bat"
+  "eza"
   "fdfind"
   "flameshot"
   "freerdp"
@@ -29,9 +30,7 @@ yay_packages=(
   "npm"
   "pandoc"
   "python-pip"
-  "teams"
   "tldr"
-  "visual-studio-code-bin"
   "yazi"
 )
 
