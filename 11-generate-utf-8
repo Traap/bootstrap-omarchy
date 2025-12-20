@@ -30,10 +30,22 @@ EOF
 # -------------------------------------------------------------------------- }}}
 # {{{ 4. Patch /etc/wsl.conf (prevent Windows PATH + locale interference)
 
-sudo tee /etc/wsl.conf >/dev/null <<'EOF'
+if ! sudo grep -q '^\[interop\]' /etc/wsl.conf 2>/dev/null; then
+  sudo tee -a /etc/wsl.conf >/dev/null <<'EOF'
+
 [interop]
 enabled=true
 appendWindowsPath=false
 EOF
+
+else
+  sudo sed -i \
+    -e '/^\[interop\]/,/^\[/{
+          s/^appendWindowsPath=.*/appendWindowsPath=false/;
+          t;
+          /^\[interop\]/a appendWindowsPath=false
+        }' \
+    /etc/wsl.conf
+fi
 
 # -------------------------------------------------------------------------- }}}
