@@ -72,7 +72,7 @@ pacmanPackagesFlag=false
 pipPackagesFlag=false
 
 # Install and enable redis for Ruby on Rails applications.
-redisFlag=true
+redisFlag=false
 
 # Install Ruby on Rails via gem or mise-managed Ruby.
 railsFlag=false
@@ -105,7 +105,7 @@ thinkpadFlag=false
 tmuxPluginsFlag=false
 
 # Generate UTF-8 locale
-utf8Flag=true
+utf8Flag=false
 
 # Install Waybar and configure status bars (Hyprland/BSPWM).
 waybarFlag=false
