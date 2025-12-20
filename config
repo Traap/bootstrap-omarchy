@@ -104,6 +104,9 @@ thinkpadFlag=false
 # Install tmux plugins and reload environment.
 tmuxPluginsFlag=false
 
+# Generate UTF-8 locale
+utf8Flag=true
+
 # Install Waybar and configure status bars (Hyprland/BSPWM).
 waybarFlag=false
 

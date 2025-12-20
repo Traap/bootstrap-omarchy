@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+# 11-generate-utf-8
+
+if [[ ${utf8Flag:-false} == true ]]; then
+  log_info 'Generating UTF-8.'
+else
+  log_info 'UTF-8 generation skipped.'
+  return
+fi
+
+# {{{ 1. Ensure en_US.UTF-8 UTF-8 is uncommented in /etc/locale.gen
+#        - Handles commented and already-uncommented cases safely
+
+sudo sed -i \
+  -e 's/^[[:space:]]*#\([[:space:]]*en_US\.UTF-8[[:space:]]\+UTF-8\)/\1/' \
+  /etc/locale.gen
+
+# -------------------------------------------------------------------------- }}}
+# {{{ 2. Generate locales
+
+sudo locale-gen
+
+# -------------------------------------------------------------------------- }}}
+# {{{ 3. Set the system locale explicitly (Arch standard)
+
+sudo tee /etc/locale.conf >/dev/null <<'EOF'
+LANG=en_US.UTF-8
+EOF
+
+# -------------------------------------------------------------------------- }}}
+# {{{ 4. Patch /etc/wsl.conf (prevent Windows PATH + locale interference)
+
+sudo tee /etc/wsl.conf >/dev/null <<'EOF'
+[interop]
+enabled=true
+appendWindowsPath=false
+EOF
+
+# -------------------------------------------------------------------------- }}}
