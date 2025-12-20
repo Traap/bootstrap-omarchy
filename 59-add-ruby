@@ -18,6 +18,7 @@ fi
 
 if command -v mise &>/dev/null; then
   mise use -g $rubyVersion && log_pass "Ruby installed via mise."
+  hash -r
 else
   log_fail "mise not found — cannot install Ruby."
   return;

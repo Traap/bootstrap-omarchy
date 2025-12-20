@@ -36,3 +36,4 @@ pacman_packages=(
 
 sudo pacman -S --noconfirm --needed "${pacman_packages[@]}"
 sudo pacman -Fy
+hash -r

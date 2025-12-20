@@ -35,3 +35,4 @@ yay_packages=(
 )
 
 yay -Sy --noconfirm --needed "${yay_packages[@]}"
+hash -r
