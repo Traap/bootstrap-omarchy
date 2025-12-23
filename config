@@ -143,4 +143,12 @@ reflectorLocation="United States"
 # Timezone (informational; not yet applied).
 timezone=America/Los_Angeles
 
+# Active Directory constants
+AD_DOMAIN="ent.co.ventura.ca.us"
+AD_REALM="ENT.CO.VENTURA.CA.US"
+AD_DNS1="10.130.5.98"
+AD_DNS2="10.130.5.100"
+AD_USER="135272"
+LOG_FILE="ad-integration.log"
+
 # -------------------------------------------------------------------------- }}}

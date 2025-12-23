@@ -8,16 +8,6 @@
 #     falls back to Samba/SSSD otherwise.
 #
 # -------------------------------------------------------------------------- }}}
-# {{{ Constants
-
-AD_DOMAIN="ent.co.ventura.ca.us"
-AD_REALM="ENT.CO.VENTURA.CA.US"
-AD_DNS1="10.130.5.98"
-AD_DNS2="10.130.5.100"
-AD_USER="${AD_USER:-135272}"  # export AD_USER="username" to override
-LOG_FILE="ad-integration.log"
-
-# -------------------------------------------------------------------------- }}}
 # {{{ Flag check
 
 if [[ ${adFlag:-false} != true ]]; then
