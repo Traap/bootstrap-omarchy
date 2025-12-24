@@ -8,6 +8,13 @@ else
   return;
 fi
 
+# Install pacman packages.
+pacman_packages=(
+  "freetds"
+)
+
+sudo pacman -S --noconfirm --needed "${pacman_packages[@]}"
+
 # Installing Ruby on Rails
 if ! command -v gem &>/dev/null; then
   log_fail "Ruby gem command not found — ensure Ruby is installed."
