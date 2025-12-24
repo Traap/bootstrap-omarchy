@@ -110,6 +110,9 @@ utf8Flag=false
 # Install Waybar and configure status bars (Hyprland/BSPWM).
 waybarFlag=false
 
+# Configure WSL2
+wslFlag=false
+
 # Install AUR packages with yay.
 yayPackagesFlag=false
 

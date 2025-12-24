@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+# add-wsl
+
+if [[ ${wslFlag:-false} == true ]]; then
+  log_info 'Install wsl.'
+else
+  log_info 'wsl skipped.'
+  return;
+fi
+
+# Create wsl.conf from template.
+template=wsl-template.conf
+conf=/etc/wsl.conf
+sudo cp -v $template $conf
+
+
+# Replace WSL-HOST-HAME with archHostName
+sudo sed -i "s/WSL-HOST-NAME/$archHostName/g" $conf
+
+# Replace WSL-USER-HAME
+sudo sed -i "s/WSL-USER-NAME/$archUserName/g" $conf
