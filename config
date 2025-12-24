@@ -135,10 +135,10 @@ gitUserName="Traap"
 rubyVersion='ruby@3'
 
 # Hostname to assign to this Arch system.
-archHostName=GSA-M98AXA
+archHostName=Tank
 
 # Primary user for the system.
-archUserName=Traap
+archUserName=traap
 
 # Region passed to reflector for optimizing mirrors.
 reflectorLocation="United States"
