@@ -22,6 +22,7 @@ yay_packages=(
   "flameshot"
   "freerdp"
   "fzf"
+  "go"
   "graphviz"
   "imagemagick"
   "jq"
@@ -30,6 +31,8 @@ yay_packages=(
   "npm"
   "pandoc"
   "python-pip"
+  "ripgrep"
+  "ripgrep-all"
   "tldr"
   "yazi"
 )
