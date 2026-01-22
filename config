@@ -2,13 +2,13 @@
 # {{{ Products to install. Listed alphabetically.
 #
 # Each *Flag controls whether a migration step installs, updates, or configures
-# a specific subsystem. `true` enables the step; `false` skips it.
+# a specific subsystem. `false` enables the step; `false` skips it.
 #
 
 # Join system to Active Directory domain and configure Kerberos basics.
 adFlag=false
 
-# Re-run AD join steps for repairing broken domain association.
+# Re-run Active Directory join steps for repairing broken domain association.
 adRejoinFlag=false
 
 # Install Bash Git Prompt
@@ -38,7 +38,7 @@ hyprlandFlag=false
 # Install LuaRocks for Neovim plugins/modules requiring Lua compilation.
 luarocksFlag=false
 
-# Install Micorsoft program.  NOTE: This flag is not inteded for WSL2.
+# Install Micorsoft program.
 microsoftFlag=false
 
 # Refresh pacman mirrorlist using reflector for fastest regional mirrors.
@@ -132,10 +132,10 @@ gitEmail="gary.a.howard@mac.com"
 gitUserName="Traap"
 
 # Ruby version to install with mise.
-rubyVersion='ruby@3'
+rubyVersion='ruby@4'
 
 # Hostname to assign to this Arch system.
-archHostName=Tank
+archHostName=DarkKnight
 
 # Primary user for the system.
 archUserName=traap
