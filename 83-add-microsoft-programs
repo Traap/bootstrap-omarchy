@@ -16,7 +16,6 @@ fi
 
 # Install yay packages.
 yay_packages=(
-  "teams"
   "visual-studio-code-bin"
 )
 
