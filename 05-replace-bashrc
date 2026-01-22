@@ -8,8 +8,13 @@ else
   return;
 fi
 
+# Percise control of your .bash_profile
+echo "# ~/.bash_profile"                                     > ~/.bash_profile
+echo " [[ -f ~/.bashrc ]] && . ~/.bashrc"                   >> ~/.bash_profile
+
 # Precise control of your .bashrc
-echo '# All the default Omarchy aliases and functions'       > ~/.bashrc
+echo "# ~/.bashrc"                                           > ~/.bashrc
+echo '# All the default Omarchy aliases and functions'      >> ~/.bashrc
 echo '[[ -f ~/.local/share/omarchy/default/bash/rc ]] && \' >> ~/.bashrc
 echo '    . ~/.local/share/omarchy/default/bash/rc'         >> ~/.bashrc
 echo ''                                                     >> ~/.bashrc
