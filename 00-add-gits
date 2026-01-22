@@ -17,7 +17,7 @@ mkdir -p ~/.config/gits
 cp -v repository_locations.yml ~/.config/gits
 
 # Add to PATH if needed
-export PATH="$HOME/.local/bin:$PATH"
+export PATH="${PATH}:${HOME}/.local/bin"
 
 # Rehash cached commands
 hash -r
