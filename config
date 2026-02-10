@@ -53,10 +53,10 @@ nodeJsFlag=false
 # Install system-level Neovim dependencies (lsp, treesitter, dev packages).
 nvimsFlag=false
 
-# Install Omarchy's hardened Chromium browser build.
+# Remove Omarchy's hardened Chromium browser build.
 omarchyChromiumBrowserFlag=false
 
-# Install Omarchy's packaged Neovim (not personal git version).
+# Remove Omarchy's packaged Neovim (not personal git version).
 omarchyNvimFlag=false
 
 # Install OpenSSL libraries and dev headers.
@@ -157,7 +157,7 @@ AD_DNS2="10.130.5.100"
 AD_USER="135272"
 LOG_FILE="ad-integration.log"
 
-# VPN connetion information.
+# VPN connetion information
 VPN_INTERFACE="snx-xfrm"
 VPN_LOGIN_TYPE="vpn"
 VPN_SERVER="157.145.220.225"
