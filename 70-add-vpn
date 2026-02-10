@@ -29,11 +29,14 @@ log_info 'Cloning snx-rs.'
 cd /opt
 if [[ ! -d snx-rs ]]; then
   sudo git clone https://github.com/ancwrd1/snx-rs.git
+  sudo chown -R "$USER":"$USER" snx-rs
+else
+  sudo git pull https://github.com/ancwrd1/snx-rs.git
 fi
 
 log_info 'Building snx-rs.'
 cd /opt/snx-rs
-sudo cargo build --release
+cargo build --release
 
 log_info 'Installing snx-rs binary.'
 sudo install -m755 target/release/snx-rs /usr/local/bin/snx-rs
@@ -41,6 +44,7 @@ sudo install -m755 target/release/snx-rs /usr/local/bin/snx-rs
 log_info 'Creating global snx-rs config...'
 sudo mkdir -p /etc/snx-rs
 
+# TODO: Remove ignore-server-cert = true when switched to VPN hostname.
 cat > /tmp/config.toml <<EOF
 server-name = "${VPN_SERVER}"
 login-type = "${VPN_LOGIN_TYPE}"
@@ -54,4 +58,4 @@ sudo mv -vf /tmp/config.toml /etc/snx-rs/config.toml
 sudo chown root  /etc/snx-rs/config.toml
 
 # Return to starting directory.
-cd $cwd
+cd "$cwd"
