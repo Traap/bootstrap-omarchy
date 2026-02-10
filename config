@@ -107,6 +107,9 @@ tmuxPluginsFlag=false
 # Generate UTF-8 locale
 utf8Flag=false
 
+# Install software VPN related software.
+vpnFlag=true
+
 # Install Waybar and configure status bars (Hyprland/BSPWM).
 waybarFlag=false
 
@@ -153,5 +156,11 @@ AD_DNS1="10.130.5.98"
 AD_DNS2="10.130.5.100"
 AD_USER="135272"
 LOG_FILE="ad-integration.log"
+
+# VPN connetion information.
+VPN_INTERFACE="snx-xfrm"
+VPN_LOGIN_TYPE="vpn"
+VPN_SERVER="157.145.220.225"
+VPN_TUNNEL_TYPE="ipsec"
 
 # -------------------------------------------------------------------------- }}}

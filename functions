@@ -1,13 +1,18 @@
 # Define and export helper functions
-say()      { echo -e "$*"; }
-sayAndDo() { say "${1}" ${1}; }
-log_bar()  { say "───────────────────────────────────────────────"; }
-log_info() { say "🧩 $*"; }
-log_warn() { say "⚠️ $*"; }
-log_pass() { say "✅ $*"; }
-log_fail() { say "❌ $*"; }
-have_cmd() { command -v "$1" &>/dev/null; }
-
+say()          { echo -e "$*"; }
+sayAndDo()     { say "${1}" ${1}; }
+log_bar()      { say "───────────────────────────────────────────────"; }
+log_info()     { say "🧩 $*"; }
+log_warn()     { say "⚠️ $*"; }
+log_pass()     { say "✅ $*"; }
+log_fail()     { say "❌ $*"; }
+have_cmd()     { command -v "$1" &>/dev/null; }
+root_required() {
+  if [[ $EUID -ne 0 ]]; then
+    echo "Please run this script as root (sudo)."
+    exit 1
+  fi
+}
 # Export helper functions so child scripts can use them without re-sourcing.
 export -f say
 export -f sayAndDo
@@ -17,3 +22,4 @@ export -f log_warn
 export -f log_pass
 export -f log_fail
 export -f have_cmd
+export -f root_required
