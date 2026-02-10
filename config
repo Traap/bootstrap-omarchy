@@ -108,7 +108,7 @@ tmuxPluginsFlag=false
 utf8Flag=false
 
 # Install software VPN related software.
-vpnFlag=true
+vpnFlag=false
 
 # Install Waybar and configure status bars (Hyprland/BSPWM).
 waybarFlag=false

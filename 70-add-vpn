@@ -1,42 +1,45 @@
 #!/usr/bin/env bash
 # add-vnp
 
-# if [[ ${vpnFlag:-false} == true ]]; then
-#   log_info 'Installing VPN.'
-# else
-#   log_info 'VPN skipped.'
-#   return;
-# fi
-#
-# log_info 'Updating system.'
-# sudo pacman -Sy --noconfirm
-#
-# log_info 'Installing required packages.'
-# sudo pacman -S --noconfirm \
-#   git \
-#   rust \
-#   cargo \
-#   iproute2 \
-#   openssl \
-#   remmina \
-#   freerdp \
-#   libvncserver
-#
-# log_info 'Cloning snx-rs.'
-# cd /opt
-# if [[ ! -d snx-rs ]]; then
-#   sudo git clone https://github.com/ancwrd1/snx-rs.git
-# fi
-#
-# log_info 'Building snx-rs.'
-# cd /opt/snx-rs
-# sudo cargo build --release
-#
-# log_info 'Installing snx-rs binary.'
-# sudo install -m755 target/release/snx-rs /usr/local/bin/snx-rs
-#
-# log_info 'Creating global snx-rs config...'
-# sudo mkdir -p /etc/snx-rs
+if [[ ${vpnFlag:-false} == true ]]; then
+  log_info 'Installing VPN.'
+else
+  log_info 'VPN skipped.'
+  return;
+fi
+
+# Capture current working directory.
+cwd=$(pwd)
+
+log_info 'Updating system.'
+sudo pacman -Sy --noconfirm
+
+log_info 'Installing required packages.'
+sudo pacman -S --noconfirm \
+  git \
+  rust \
+  cargo \
+  iproute2 \
+  openssl \
+  remmina \
+  freerdp \
+  libvncserver
+
+log_info 'Cloning snx-rs.'
+cd /opt
+if [[ ! -d snx-rs ]]; then
+  sudo git clone https://github.com/ancwrd1/snx-rs.git
+fi
+
+log_info 'Building snx-rs.'
+cd /opt/snx-rs
+sudo cargo build --release
+
+log_info 'Installing snx-rs binary.'
+sudo install -m755 target/release/snx-rs /usr/local/bin/snx-rs
+
+log_info 'Creating global snx-rs config...'
+sudo mkdir -p /etc/snx-rs
 
 cat > /tmp/config.toml <<EOF
 server-name = "${VPN_SERVER}"
@@ -46,6 +49,9 @@ ignore-server-cert = true
 ike-persist = true
 port-knock = true
 EOF
-sudo mkdir -p /etc/snx-rs
+
 sudo mv -vf /tmp/config.toml /etc/snx-rs/config.toml
-sudo chown root  /etc/snx-rs/config.tomear
+sudo chown root  /etc/snx-rs/config.toml
+
+# Return to starting directory.
+cd $cwd
