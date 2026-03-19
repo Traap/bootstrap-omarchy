@@ -9,11 +9,14 @@ else
 fi
 
 nodejs_packages=(
-  neovim
-  node-gyp
   "@mermaid-js/mermaid-cli"
-  semver
-  yarn
+  "@openai/codex"
+  "neovim"
+  "node-gyp"
+  "pm2"
+  "semver"
+  "ts-node"
+  "yarn"
 )
 
 # Use lastest node version.s
