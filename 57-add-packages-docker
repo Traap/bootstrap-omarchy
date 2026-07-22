@@ -15,8 +15,8 @@ docker_packages=(
   "docker-compose"
 )
 
-log_info 'pacman -S --noconfirm ${docker_packages[@]}'
-sudo pacman -S --noconfirm "${docker_packages[@]}"
+log_info 'pacman -S --noconfirm --nocolor --noprogressbar --needed ${docker_packages[@]}'
+sudo pacman -S --noconfirm --nocolor --noprogressbar --needed "${docker_packages[@]}"
 
 log_info 'sudo systemctl enable docker.service --now'
 sudo systemctl enable docker.service --now

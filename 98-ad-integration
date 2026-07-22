@@ -33,14 +33,14 @@ fi
 # {{{ Package installation
 
 log_info "Installing core AD packages..."
-sudo pacman -Syu --noconfirm --needed samba krb5 sssd openresolv || {
+sudo pacman -Syu --noconfirm --nocolor --noprogressbar --neededsamba krb5 sssd openresolv || {
   log_fail "Failed to install base packages."
   return 1 2>/dev/null || exit 1
 }
 
 if $AD_ONLINE; then
   log_info "Installing AUR packages (realmd, adcli, oddjob, oddjob-mkhomedir)..."
-  yay -S --noconfirm --needed realmd adcli oddjob oddjob-mkhomedir || \
+  yay -S --noconfirm --nocolor --noprogressbar --neededrealmd adcli oddjob oddjob-mkhomedir || \
     log_warn "AUR packages failed to install; will continue with Samba/SSSD only."
 fi
 

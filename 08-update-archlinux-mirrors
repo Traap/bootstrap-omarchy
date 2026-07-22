@@ -17,7 +17,7 @@ sudo pacman-key --populate archlinux
 
 if ! command -v reflector &>/dev/null; then
   log_info 'Install reflector'
-  sudo pacman -Sy --noconfirm reflector
+  sudo pacman -Sy --noconfirm --nocolor --noprogressbar --needed reflector
 else
   log_info 'Install reflector skipped'
 fi

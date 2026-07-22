@@ -12,5 +12,5 @@ pacman_packages=(
   "redis"
 )
 
-sudo pacman -S --noconfirm --needed "${pacman_packages[@]}"
+sudo pacman -S --noconfirm --nocolor --noprogressbar --needed "${pacman_packages[@]}"
 sudo systemctl start redis.service

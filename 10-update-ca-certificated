@@ -9,5 +9,5 @@ else
 fi
 
 # Update certificates
-sudo pacman -S --noconfirm ca-certificates ca-certificates-utils ca-certificates-mozilla
+sudo pacman -S --noconfirm --nocolor --noprogressbar --needed ca-certificates ca-certificates-utils ca-certificates-mozilla
 sudo update-ca-trust

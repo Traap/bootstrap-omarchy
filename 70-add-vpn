@@ -15,7 +15,7 @@ log_info 'Updating system.'
 sudo pacman -Sy --noconfirm
 
 log_info 'Installing required packages.'
-sudo pacman -S --noconfirm \
+sudo pacman -S --noconfirm --nocolor --noprogressbar --needed \
   git \
   rust \
   cargo \
