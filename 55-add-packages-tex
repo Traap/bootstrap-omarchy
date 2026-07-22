@@ -24,4 +24,4 @@ tex_packages=(
   "texlive-fontsextra"
 )
 
-yay -S --noconfirm --nocolor --noprogressbar --needed "${tex_packages[@]}"
+yay -S --noconfirm  --noprogressbar --needed "${tex_packages[@]}"

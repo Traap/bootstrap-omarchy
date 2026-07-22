@@ -34,6 +34,6 @@ pacman_packages=(
   "which"
 )
 
-sudo pacman -S --noconfirm --nocolor --noprogressbar --needed "${pacman_packages[@]}"
+sudo pacman -S --noconfirm  --noprogressbar --needed "${pacman_packages[@]}"
 sudo pacman -Fy
 hash -r

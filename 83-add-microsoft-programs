@@ -19,4 +19,4 @@ yay_packages=(
   "visual-studio-code-bin"
 )
 
-yay -Sy --noconfirm --nocolor --noprogressbar --needed "${yay_packages[@]}"
+yay -Sy --noconfirm  --noprogressbar --needed "${yay_packages[@]}"

@@ -11,7 +11,7 @@ fi
 # Remove system Ruby if installed.
 if pacman -Qs ruby >/dev/null 2>&1; then
   log_info "Removing system Ruby..."
-  sudo pacman -Rns --noconfirm --nocolor --noprogressbar --needed ruby toby-try
+  sudo pacman -Rns --noconfirm  --noprogressbar --needed ruby toby-try
 else
   log_info "System Ruby not installed. Skipping."
 fi
