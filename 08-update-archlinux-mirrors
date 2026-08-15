@@ -17,10 +17,10 @@ sudo pacman-key --populate archlinux
 
 if ! command -v reflector &>/dev/null; then
   log_info 'Install reflector'
-  sudo pacman -Sy --noconfirm  --noprogressbar --needed reflector
+  sudo pacman -S --noconfirm --noprogressbar --needed reflector
 else
   log_info 'Install reflector skipped'
 fi
 
-log_info 'Updating mirrors to ${reflectorLocation}'
+log_info "Updating mirrors for ${reflectorLocation}"
 sudo reflector -c "${reflectorLocation}" -f 12 -l 10 -n 12  --save /etc/pacman.d/mirrorlist

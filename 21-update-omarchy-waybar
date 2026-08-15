@@ -1,19 +1,20 @@
 #!/usr/bin/env bash
-# waybar
+# Optional legacy Waybar setup. Omarchy Quattro uses Quickshell by default.
 
 if [[ ${waybarFlag:-false} == true ]]; then
-  log_info 'Install waybar.'
+  log_warn 'Installing optional Waybar configuration; Quattro uses Omarchy Shell by default.'
 else
   log_info 'waybar skipped.'
   return;
 fi
 
-# Create a symbolic link to your personal waybar ddotfiles
-log_info 'rm    -frv  ~/.config/waybar'
-rm    -frv  ~/.config/waybar
+source_dir="$dotfiles/waybar"
+target="$HOME/.config/waybar"
+[[ -d $source_dir ]] || { log_fail "Waybar configuration not found: $source_dir"; return 1; }
 
-log_info 'mkdir -pv  ~/config/waybar'
-mkdir -pv  ~/config/waybar
-
-log_info 'ln    -fsv ${dotfiles}/waybar ~/.config/waybar'
-ln    -fsv ${dotfiles}/waybar ~/.config/waybar
+if [[ -e $target || -L $target ]]; then
+  backup="$target.bak.$(date +%Y%m%d-%H%M%S)"
+  mv -v "$target" "$backup"
+  log_warn "Backed up existing Waybar configuration to $backup"
+fi
+ln -s "$source_dir" "$target"

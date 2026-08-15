@@ -1,4 +1,4 @@
-#k!/usr/bin/env bash
+#!/usr/bin/env bash
 # {{{ Check symnlinksFlag
 
 if [[ ${symlinksFlag:-false} == true ]]; then
@@ -12,67 +12,55 @@ fi
 # {{{ Create symbolic links
 
 createSymLinks() {
-  if [[ ${createSymLinksFlag:-false} == true ]]; then
-    log_info "Creating symbolic links."
-    mkdir -p ~/.config
+  log_info "Creating symbolic links."
+  mkdir -p ~/.config
+
+    safe_link() {
+      local source_path=$1 target_path=$2 backup_path
+      [[ -e $source_path || -L $source_path ]] || {
+        log_warn "Source does not exist; skipping: $source_path"
+        return 0
+      }
+
+      if [[ -L $target_path && $(readlink -f -- "$target_path") == $(readlink -f -- "$source_path") ]]; then
+        log_info "Link already correct: $target_path"
+        return 0
+      fi
+
+      if [[ -e $target_path || -L $target_path ]]; then
+        backup_path="${target_path}.bak.$(date +%Y%m%d-%H%M%S)"
+        mv -v -- "$target_path" "$backup_path"
+        log_warn "Backed up existing path to $backup_path"
+      fi
+
+      mkdir -p -- "$(dirname -- "$target_path")"
+      ln -s -- "$source_path" "$target_path"
+    }
 
     # Symlinks at .config
-    ln -fsv ~/git/dotfiles/ghostty                ~/.config/ghostty
-    ln -fsv ~/git/dotfiles/gits                   ~/.config/gits
-    ln -fsv ~/git/dotfiles/starship/starship.toml ~/.config/starship.toml
-    ln -fsv ~/git/dotfiles/yazi                   ~/.config/yazi
-    ln -fsv ~/git/nvim.traap                      ~/.config/nvim
+    safe_link "$dotfiles/ghostty"                "$HOME/.config/ghostty"
+    safe_link "$dotfiles/gits"                   "$HOME/.config/gits"
+    safe_link "$dotfiles/starship/starship.toml" "$HOME/.config/starship.toml"
+    safe_link "$dotfiles/yazi"                   "$HOME/.config/yazi"
+    safe_link "$cloneRoot/nvim.traap"            "$HOME/.config/nvim"
 
     # Symlinks at $HOME
-    ln -fsv ~/git/dotfiles/bash/inputrc           ~/.inputrc
-    ln -fsv ~/git/dotfiles/bash/xinitrc           ~/.xinitrc
-    ln -fsv ~/git/dotfiles/git/gitconfig          ~/.gitconfig
-    ln -fsv ~/git/dotfiles/git/gitignore_global   ~/.gitignore_global
-    ln -fsv ~/git/dotfiles/latex/latexmkrc        ~/.latexmkrc
-    ln -fsv ~/git/ssh/config.vim                  ~/.config.vim
-    ln -fsv ~/git/ssh                             ~/.ssh
-    ln -fsv ~/git/tmux                            ~/.tmux
-    ln -fsv ~/git/tmux/tmux.conf                  ~/.tmux.conf
-    ln -fsv ~/git/vim                             ~/.vim
-    ln -fsv ~/git/vim/vimrc                       ~/.vimrc
-  fi
+    safe_link "$dotfiles/bash/inputrc"          "$HOME/.inputrc"
+    safe_link "$dotfiles/bash/xinitrc"          "$HOME/.xinitrc"
+    safe_link "$dotfiles/git/gitconfig"         "$HOME/.gitconfig"
+    safe_link "$dotfiles/git/gitignore_global"  "$HOME/.gitignore_global"
+    safe_link "$dotfiles/latex/latexmkrc"       "$HOME/.latexmkrc"
+    safe_link "$cloneRoot/ssh/config.vim"       "$HOME/.config.vim"
+    safe_link "$cloneRoot/ssh"                  "$HOME/.ssh"
+    safe_link "$cloneRoot/tmux"                 "$HOME/.tmux"
+    safe_link "$cloneRoot/tmux/tmux.conf"       "$HOME/.tmux.conf"
+    safe_link "$cloneRoot/vim"                  "$HOME/.vim"
+    safe_link "$cloneRoot/vim/vimrc"            "$HOME/.vimrc"
 }
 
 # -------------------------------------------------------------------------- }}}
-# {{{ Delete symbolic links
+# {{{ Create configured symbolic links
 
-deleteSymLinks() {
-  if [[ ${deleteSymLinksFlag:-false} == true ]]; then
-    log_info "Deleting symbolic links."
-
-    # Symlinks at .config
-    rm -rfv ~/.config/ghostty
-    rm -rfv ~/.config/gits
-    rm -rfv ~/.config/nvim
-    rm -rfv ~/.config/starship.toml
-    rm -rfv ~/.config/yazi
-
-    # Symlinks at $HOME
-    rm -rfv ~/.config.vim
-    rm -rfv ~/.gitconfig
-    rm -rfv ~/.gitignore_global
-    rm -rfv ~/.inputrc
-    rm -rfv ~/.latexmkrc
-    rm -rfv ~/.ssh
-    rm -rfv ~/.tmux
-    rm -rfv ~/.tmux.conf
-    rm -rfv ~/.vim
-    rm -rfv ~/.vimrc
-  fi
-}
-
-# -------------------------------------------------------------------------- }}}
-# {{{ The stage is set ... start the show!!!
-
-createSymLinksFlag=true
-deleteSymLinksFlag=true
-
-deleteSymLinks
 createSymLinks
 
 # -------------------------------------------------------------------------- }}}

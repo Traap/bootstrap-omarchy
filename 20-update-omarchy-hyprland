@@ -4,16 +4,38 @@
 if [[ ${hyprlandFlag:-false} == true ]]; then
   log_info 'Install hyprland.'
 else
-  log_info 'hyprland skipped.' return;
-  return;
+  log_info 'hyprland skipped.'
+  return
 fi
 
-# Create a symbolic link to your personal hyprland dotfiles
-log_info 'rm    -frv  ~/.config/hypr'
-rm    -frv  ~/.config/hypr
+# Quattro owns hyprland.lua and layers these user modules after its defaults.
+source_dir="$dotfiles/hypr"
+target_dir="$HOME/.config/hypr"
+override_files=(monitors.lua input.lua bindings.lua looknfeel.lua autostart.lua)
 
-log_info 'mkdir -pv  ~/config/hypr '
-mkdir -pv  ~/config/hypr
+[[ -d $source_dir ]] || { log_fail "Hyprland overrides not found: $source_dir"; return 1; }
+mkdir -p "$target_dir"
 
-log_info 'ln    -fsv ${dotfiles}/hypr ~/.config/hypr'
-ln    -fsv ${dotfiles}/hypr ~/.config/hypr
+if [[ ! -f $target_dir/hyprland.lua ]]; then
+  omarchy_source="${OMARCHY_PATH:-$HOME/.local/share/omarchy}/config/hypr/hyprland.lua"
+  [[ -f $omarchy_source ]] || {
+    log_fail "Quattro Hyprland entry point not found: $omarchy_source"
+    return 1
+  }
+  cp -v "$omarchy_source" "$target_dir/hyprland.lua"
+fi
+
+for file in "${override_files[@]}"; do
+  [[ -f $source_dir/$file ]] || { log_info "No override supplied for $file"; continue; }
+  if [[ -e $target_dir/$file && ! -L $target_dir/$file ]]; then
+    mv -v "$target_dir/$file" "$target_dir/$file.bak.$(date +%Y%m%d-%H%M%S)"
+  else
+    rm -f "$target_dir/$file"
+  fi
+  ln -s "$source_dir/$file" "$target_dir/$file"
+done
+
+if command -v hyprctl &>/dev/null; then
+  hyprctl reload
+  hyprctl configerrors
+fi

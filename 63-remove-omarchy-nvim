@@ -5,6 +5,7 @@ if [[ ${omarchyNvimFlag:-false} == true ]]; then
   log_info "Removing Omarcny Nvim."
 else
   log_info "Remove Omarcny Nvim skipped."
+  return
 fi
 
 # Remove Omarch Nvim

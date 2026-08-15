@@ -9,9 +9,9 @@ else
 fi
 
 # Removed orphaned packages.
-orphans=$(sudo pacman -Qdtq)
-if [[ -n ${orphans} ]]; then
-  sudo pacman -Rns $orphans
+mapfile -t orphans < <(pacman -Qdtq 2>/dev/null || true)
+if ((${#orphans[@]})); then
+  sudo pacman -Rns --noconfirm "${orphans[@]}"
 else
   echo "No orphans found."
 fi

@@ -11,9 +11,6 @@ fi
 # Capture current working directory.
 cwd=$(pwd)
 
-log_info 'Updating system.'
-sudo pacman -Sy --noconfirm
-
 log_info 'Installing required packages.'
 sudo pacman -S --noconfirm  --noprogressbar --needed \
   git \
@@ -26,12 +23,11 @@ sudo pacman -S --noconfirm  --noprogressbar --needed \
   libvncserver
 
 log_info 'Cloning snx-rs.'
-cd /opt
-if [[ ! -d snx-rs ]]; then
-  sudo git clone https://github.com/ancwrd1/snx-rs.git
-  sudo chown -R "$USER":"$USER" snx-rs
+if [[ ! -d /opt/snx-rs/.git ]]; then
+  sudo git clone https://github.com/ancwrd1/snx-rs.git /opt/snx-rs
+  sudo chown -R "$USER":"$USER" /opt/snx-rs
 else
-  sudo git pull https://github.com/ancwrd1/snx-rs.git
+  git -C /opt/snx-rs pull --ff-only
 fi
 
 log_info 'Building snx-rs.'

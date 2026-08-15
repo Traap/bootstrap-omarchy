@@ -9,9 +9,9 @@ else
 fi
 
 if ! command -v yay &>/dev/null; then
-  git clone https://aur.archlinux.org/yay.git
-  cd yay
-  makepkg -si
+  build_dir="$(mktemp -d)"
+  git clone https://aur.archlinux.org/yay.git "$build_dir/yay"
+  (cd "$build_dir/yay" && makepkg -si --noconfirm)
 fi
 
 # Install yay packages.
@@ -37,5 +37,5 @@ yay_packages=(
   "yazi"
 )
 
-yay -Sy --noconfirm  --noprogressbar --needed" ${yay_packages[@]}"
+yay -S --noconfirm --noprogressbar --needed "${yay_packages[@]}"
 hash -r

@@ -9,9 +9,8 @@ else
 fi
 
 if ! command -v yay &>/dev/null; then
-  git clone https://aur.archlinux.org/yay.git
-  cd yay
-  makepkg -si
+  log_fail "yay is required; enable yayPackagesFlag first."
+  return 1
 fi
 
 # Install yay packages.
@@ -19,4 +18,4 @@ yay_packages=(
   "visual-studio-code-bin"
 )
 
-yay -Sy --noconfirm  --noprogressbar --needed "${yay_packages[@]}"
+yay -S --noconfirm --noprogressbar --needed "${yay_packages[@]}"

@@ -4,8 +4,8 @@
 if [[ ${cloneReposFlag:-false} == true ]]; then
   log_info 'Cloning repos.'
 else
-  log_info 'Cloning repos.'
-  return;
+  log_info 'Cloning repos skipped.'
+  return
 fi
 
 # Clone repositories using gits

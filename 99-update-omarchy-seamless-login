@@ -10,18 +10,18 @@ else
 fi
 
 # Install seamless login
-command="sudo cp -v omarchy-seamless-login.service /etc/systemd/system/omarchy-seamless-login.servic"
-log_info "${command}'
-${command}
+command=(sudo install -m 0644 omarchy-seamless-login.service /etc/systemd/system/omarchy-seamless-login.service)
+log_info "${command[*]}"
+"${command[@]}"
 
-command="sudo systemctl daemon-reexec"
-log_info "${command}"
-${command}
+command=(sudo systemctl daemon-reexec)
+log_info "${command[*]}"
+"${command[@]}"
 
-command="sudo systemctl daemon-reload"
-log_info "${command}"
-${command}
+command=(sudo systemctl daemon-reload)
+log_info "${command[*]}"
+"${command[@]}"
 
-command="sudo systemctl restart omarchy-seamless-login.service"
-log_info "${command}"
-${command}
+command=(sudo systemctl enable --now omarchy-seamless-login.service)
+log_info "${command[*]}"
+"${command[@]}"

@@ -2,7 +2,7 @@
 # {{{ Products to install. Listed alphabetically.
 #
 # Each *Flag controls whether a migration step installs, updates, or configures
-# a specific subsystem. `false` enables the step; `false` skips it.
+# a specific subsystem. `true` enables the step; `false` skips it.
 #
 
 # Join system to Active Directory domain and configure Kerberos basics.
@@ -27,7 +27,7 @@ certificatesFlag=false
 cloneReposFlag=false
 
 # Install Docker and related container packages.
-dockerPacakgesFlag=false
+dockerPackagesFlag=false
 
 # Install/update Traap's Python gits tool and its repository_locations.
 gitsFlag=false
@@ -38,7 +38,7 @@ hyprlandFlag=false
 # Install LuaRocks for Neovim plugins/modules requiring Lua compilation.
 luarocksFlag=false
 
-# Install Micorsoft program.
+# Install Microsoft programs.
 microsoftFlag=false
 
 # Refresh pacman mirrorlist using reflector for fastest regional mirrors.
@@ -77,11 +77,14 @@ redisFlag=false
 # Install Ruby on Rails via gem or mise-managed Ruby.
 railsFlag=false
 
-# Install Ruby via mise (jkcontrolled by rubyVersion).
+# Install Ruby via mise (controlled by rubyVersion).
 rubyFlag=false
 
 # Configure Omarchy seamless-login (kerberos env propagation, ssh-agent, etc.).
 seamlessLoginFlag=false
+
+# Link a Quattro Omarchy Shell configuration from $dotfiles/omarchy/shell.json.
+shellConfigFlag=false
 
 # Disable and remove all snapshots exept current one.
 snapshotFlag=false
@@ -113,7 +116,7 @@ utf8Flag=false
 # Install software VPN related software.
 vpnFlag=false
 
-# Install Waybar and configure status bars (Hyprland/BSPWM).
+# Install optional legacy Waybar configuration instead of Quattro's shell bar.
 waybarFlag=false
 
 # Configure WSL2

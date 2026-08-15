@@ -13,7 +13,7 @@ pacman_packages=(
   "freetds"
 )
 
-sudo pacman -S --noconfirm  --noprogressbar --needed" ${pacman_packages[@]}"
+sudo pacman -S --noconfirm --noprogressbar --needed "${pacman_packages[@]}"
 
 # Installing Ruby on Rails
 if ! command -v gem &>/dev/null; then

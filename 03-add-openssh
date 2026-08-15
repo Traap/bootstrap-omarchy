@@ -10,7 +10,7 @@ fi
 
 # Install OpenSSH and OpenbSSL
 log_info "Installing OpenSSH and OpenSSL..."
-sudo pacman -Sy --noconfirm  --noprogressbar --neededopenssh openssl
+sudo pacman -S --noconfirm --noprogressbar --needed openssh openssl
 
 log_info "Enabling and starting sshd service..."
 sudo systemctl enable sshd.service

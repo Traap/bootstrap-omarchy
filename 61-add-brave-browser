@@ -14,4 +14,7 @@ if ! command -v curl &>/dev/null; then
   return;
 fi
 
-curl -fsS https://dl.brave.com/install.sh | sh
+installer="$(mktemp)"
+curl --proto '=https' --tlsv1.2 -fsSL https://dl.brave.com/install.sh -o "$installer"
+sh "$installer"
+rm -f "$installer"

@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+# Omarchy Quattro shell configuration
+
+if [[ ${shellConfigFlag:-false} == true ]]; then
+  log_info 'Installing Omarchy Shell configuration.'
+else
+  log_info 'Omarchy Shell configuration skipped.'
+  return
+fi
+
+source_file="$dotfiles/omarchy/shell.json"
+target="$HOME/.config/omarchy/shell.json"
+
+[[ -f $source_file ]] || {
+  log_fail "Omarchy Shell configuration not found: $source_file"
+  return 1
+}
+
+mkdir -p "$(dirname "$target")"
+if [[ -e $target || -L $target ]]; then
+  if [[ -L $target && $(readlink -f "$target") == $(readlink -f "$source_file") ]]; then
+    log_info "Omarchy Shell configuration is already linked."
+    return
+  fi
+  backup="$target.bak.$(date +%Y%m%d-%H%M%S)"
+  mv -v "$target" "$backup"
+  log_warn "Backed up existing shell configuration to $backup"
+fi
+
+ln -s "$source_file" "$target"
+log_pass 'Omarchy Shell configuration installed; the shell will hot-reload it.'

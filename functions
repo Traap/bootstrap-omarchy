@@ -1,6 +1,6 @@
 # Define and export helper functions
-say()          { echo -e "$*"; }
-sayAndDo()     { say "${1}" ${1}; }
+say()          { printf '%b\n' "$*"; }
+sayAndDo()     { printf '+ %q ' "$@"; printf '\n'; "$@"; }
 log_bar()      { say "───────────────────────────────────────────────"; }
 log_info()     { say "🧩 $*"; }
 log_warn()     { say "⚠️ $*"; }

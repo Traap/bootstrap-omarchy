@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
 # mise packages
 
-if [[ ${nodeJsFlag:-false} == true ]]; then
+if [[ ${miseFlag:-false} == true ]]; then
   log_info "Installing Mise .."
 else
   log_info "Mise skipped."
   return;
 fi
 
-curl https://mise.run | sh
+curl --proto '=https' --tlsv1.2 -fsSL https://mise.run -o /tmp/mise-install.sh
+bash /tmp/mise-install.sh

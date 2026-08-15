@@ -40,7 +40,7 @@ say "Installing ThinkPad drivers and utilities..."
 if systemctl is-enabled power-profiles-daemon.service &>/dev/null; then
   log_info "Removing power-profiles-daemon (conflicts with TLP)..."
   sudo systemctl disable --now power-profiles-daemon.service || true
-  sudo pacman -Rns --noconfirm  --noprogressbar --needed power-profiles-daemon || true
+  sudo pacman -Rns --noconfirm --noprogressbar power-profiles-daemon || true
 fi
 
 # -------------------------------------------------------------------------- }}}
@@ -65,7 +65,7 @@ sudo systemctl enable --now bolt.service || true
 have_cmd boltctl && boltctl list || true
 
 log_info "Installing thinkfan (AUR)..."
-yay -S --noconfirm  --noprogressbar --neededthinkfan || log_warn "thinkfan install failed."
+yay -S --noconfirm --noprogressbar --needed thinkfan || log_warn "thinkfan install failed."
 
 log_info "Detecting sensors..."
 have_cmd sensors-detect && yes '' | sudo sensors-detect --auto || log_warn "sensors-detect failed."
@@ -76,7 +76,7 @@ have_cmd sensors-detect && yes '' | sudo sensors-detect --auto || log_warn "sens
 if have_cmd lsusb && lsusb | grep -qi 'DisplayLink'; then
   log_info "DisplayLink dock detected — preparing EVDI (DKMS-free)."
 
-  sudo pacman -S --noconfirm  --noprogressbar --neededlinux-headers git base-devel || log_warn "headers/tools install failed."
+  sudo pacman -S --noconfirm --noprogressbar --needed linux-headers git base-devel || log_warn "headers/tools install failed."
 
   kernel_ver="$(uname -r)"
   # Ensure kernel build path exists (Arch uses /usr/lib/modules)

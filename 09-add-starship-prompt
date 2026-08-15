@@ -8,4 +8,7 @@ else
   return;
 fi
 
-curl -sS https://starship.rs/install.sh | sh
+installer="$(mktemp)"
+curl --proto '=https' --tlsv1.2 -fsSL https://starship.rs/install.sh -o "$installer"
+sh "$installer"
+rm -f "$installer"

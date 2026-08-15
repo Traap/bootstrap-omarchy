@@ -14,6 +14,17 @@ cd bootstrap-omarchy
 ./migration
 ```
 
+Validate and preview the ordered steps before applying them:
+
+```bash
+./migration --dry-run
+./migration --step 20-update-omarchy-hyprland
+./migration --resume
+```
+
+`--resume` records successful steps by a hash of both the step and `config`, so
+changing a flag or editing a step makes it eligible to run again.
+
 Open `config` and toggle `false` → `true` for the applications you want
 installed or removed.
 
@@ -182,5 +193,13 @@ Omarchy uses a Rails-inspired migration system:
 2. `migration` — executes each step in sequence
 
 Different machines require different tools. `config` declares their identity.
+
+### Omarchy Quattro
+
+Quattro uses Lua-based Hyprland configuration and Omarchy Shell (Quickshell).
+The Hyprland step therefore preserves `~/.config/hypr/hyprland.lua` and links
+only personal override modules. The shell step links
+`$dotfiles/omarchy/shell.json`; Waybar remains a separately enabled legacy
+option.
 
 Full [config](https://github.com/Traap/bootstrap-omarchy/blob/master/config)

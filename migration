@@ -1,19 +1,85 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Run premigration setup first.
-source ./functions
-source ./config
+declare -rx MIGRATION_ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+readonly STATE_DIR="${XDG_STATE_HOME:-$HOME/.local/state}/bootstrap-omarchy/migrations"
+
+dry_run=false
+resume=false
+selected_step=""
+
+usage() {
+  cat <<'EOF'
+Usage: ./migration [--dry-run] [--resume] [--step NAME]
+
+  --dry-run    Validate and list enabled migration steps without running them.
+  --resume     Skip steps completed for the current script and config contents.
+  --step NAME  Run only the named migration file.
+EOF
+}
+
+while (($#)); do
+  case "$1" in
+    --dry-run) dry_run=true ;;
+    --resume) resume=true ;;
+    --step)
+      [[ $# -ge 2 ]] || { echo "--step requires a file name" >&2; exit 2; }
+      selected_step=$2
+      shift
+      ;;
+    -h|--help) usage; exit 0 ;;
+    *) echo "Unknown option: $1" >&2; usage >&2; exit 2 ;;
+  esac
+  shift
+done
+
+mapfile -t scripts < <(find "$MIGRATION_ROOT" -maxdepth 1 -type f \
+  -name '[0-9][0-9]-*' -printf '%f\n' | LC_ALL=C sort)
+
+((${#scripts[@]})) || { echo "No migration steps found in $MIGRATION_ROOT" >&2; exit 1; }
+
+if [[ -n $selected_step ]]; then
+  [[ $selected_step != */* && -f "$MIGRATION_ROOT/$selected_step" ]] || {
+    echo "Unknown migration step: $selected_step" >&2
+    exit 2
+  }
+  scripts=("$selected_step")
+fi
+
+echo "=== Validating migrations ==="
+bash -n "$MIGRATION_ROOT/functions" "$MIGRATION_ROOT/config" "$MIGRATION_ROOT/migration"
+for script in "${scripts[@]}"; do
+  bash -n "$MIGRATION_ROOT/$script"
+done
+
+if $dry_run; then
+  echo "=== Migration dry run ==="
+  printf 'Would evaluate: %s\n' "${scripts[@]}"
+  exit 0
+fi
+
+mkdir -p "$STATE_DIR"
 echo "=== Migration started ==="
 
-# Run migrations
-for script in [0-9][0-9]-*; do
+for script in "${scripts[@]}"; do
+  digest="$(sha256sum "$MIGRATION_ROOT/$script" "$MIGRATION_ROOT/config" | sha256sum | cut -d' ' -f1)"
+  marker="$STATE_DIR/$script-$digest"
+  if $resume && [[ -f $marker ]]; then
+    echo "$script was already completed; skipping."
+    continue
+  fi
+
   echo "$script is running."
-  source "./$script"
+  bash -euo pipefail -c '
+    source "$MIGRATION_ROOT/functions"
+    source "$MIGRATION_ROOT/config"
+    cd "$MIGRATION_ROOT"
+    source "$MIGRATION_ROOT/$1"
+  ' bash "$script"
+  touch "$marker"
   echo "$script has completed."
   echo
 done
 
-# Done
 echo "=== Tha-Tha-Tha That's all, folks! ==="
-echo "=== Porky Pig, Looney Toons and Merrie Melodies, 1937 ==="
+echo "=== Porky Pig, Looney Tunes and Merrie Melodies, 1937 ==="
