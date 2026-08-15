@@ -83,6 +83,9 @@ rubyFlag=false
 # Configure Omarchy seamless-login (kerberos env propagation, ssh-agent, etc.).
 seamlessLoginFlag=false
 
+# Disable and remove all snapshots exept current one.
+snapshotFlag=false
+
 # Install Starship Prompt
 starshipFlag=false
 

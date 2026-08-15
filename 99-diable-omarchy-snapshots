@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+# snapshotlogin
+
+if [[ $snapshotFlag == true ]]; then
+  log_info 'Disable snapshots.'
+
+else
+  log_info 'Disable snapshots skipped.'
+  return;
+fi
+
+# Install snapshots login
+command="sudo systemctl disable --now snapper-timeline.timer"
+log_info "${command}"
+${command}
+
+command="sudo systemctl disable --now snapper-cleanup.timer"
+log_info "${command}"
+${command}
+
+# command="sudo snapper delete 1-$(sudo snapper list | tail -n 1 | awk '{print $1}')"
+# log_info "${command}"
+# ${command}
+
+command="sudo systemctl disable --now limine-snapper-sync.service"
+log_info "${command}"
+${command}
+
+command="sudo limine-snapper-sync"
+log_info "${command}"
+${command}
