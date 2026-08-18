@@ -71,79 +71,64 @@ log_info "Detecting sensors..."
 have_cmd sensors-detect && yes '' | sudo sensors-detect --auto || log_warn "sensors-detect failed."
 
 # -------------------------------------------------------------------------- }}}
-# {{{ DisplayLink / EVDI — DKMS-free build + one-shot preload
+# {{{ DisplayLink / EVDI — DKMS-managed kernel module
 
 if have_cmd lsusb && lsusb | grep -qi 'DisplayLink'; then
-  log_info "DisplayLink dock detected — preparing EVDI (DKMS-free)."
-
-  sudo pacman -S --noconfirm --noprogressbar --needed linux-headers git base-devel || log_warn "headers/tools install failed."
+  log_info "DisplayLink dock detected — installing DKMS-managed EVDI support."
 
   kernel_ver="$(uname -r)"
-  # Ensure kernel build path exists (Arch uses /usr/lib/modules)
-  if [[ ! -e "/usr/lib/modules/${kernel_ver}/build" && -d "/usr/lib/modules/${kernel_ver}" ]]; then
-    log_warn "Kernel build symlink missing — creating /lib/modules/${kernel_ver}/build → /usr/lib/modules/${kernel_ver}/build (if present)."
-    [[ -d "/usr/lib/modules/${kernel_ver}/build" ]] && sudo ln -sf "/usr/lib/modules/${kernel_ver}/build" "/lib/modules/${kernel_ver}/build" || true
+  if ! sudo pacman -S --noconfirm --noprogressbar --needed dkms linux-headers; then
+    log_fail "DKMS/header installation failed."
+    return 1
   fi
 
-  # Rebuild evdi from upstream master into the current kernel tree (no DKMS)
-  build_dir="/tmp/evdi"
-  sudo rm -rf "$build_dir" || true
-  if sudo git clone --depth=1 https://github.com/DisplayLink/evdi.git "$build_dir"; then
-    pushd "$build_dir/module" >/dev/null
-    sudo make clean || true
-    sudo make CFLAGS=-Wno-error || log_warn "EVDI build had warnings."
-    # Install via the kernel's top-level Makefile
-    if sudo make -C "/lib/modules/${kernel_ver}/build" M="$build_dir/module" modules_install; then
-      sudo depmod -a || true
-    else
-      log_warn "Kernel modules_install failed — EVDI may not persist."
+  # This legacy provider satisfies displaylink's `evdi` dependency but does not
+  # build against current kernels. Remove it and displaylink together so pacman
+  # never sees a temporarily broken dependency or an interactive conflict.
+  if pacman -Qq evdi-amd-vmap-texture &>/dev/null; then
+    log_info "Replacing incompatible evdi-amd-vmap-texture with evdi-dkms."
+    conflicting_pkgs=(evdi-amd-vmap-texture)
+    pacman -Qq displaylink &>/dev/null && conflicting_pkgs+=(displaylink)
+    if ! sudo pacman -R --noconfirm --noprogressbar "${conflicting_pkgs[@]}"; then
+      log_fail "Failed to remove the incompatible EVDI provider."
+      return 1
     fi
-    popd >/dev/null
-  else
-    log_warn "EVDI clone failed — skipping build."
   fi
 
-  # Load now (non-fatal if it fails)
-  sudo modprobe -r evdi 2>/dev/null || true
-  sleep 1
+  if ! yay -S --noconfirm --noprogressbar --needed evdi-dkms displaylink; then
+    log_fail "DisplayLink/EVDI installation failed."
+    return 1
+  fi
+
+  # Remove the obsolete service created by older versions of this migration.
+  # displaylink.service already runs modprobe evdi before starting the manager.
+  if [[ -e /etc/systemd/system/evdi-load.service || -L /etc/systemd/system/multi-user.target.wants/evdi-load.service ]]; then
+    log_info "Removing obsolete kernel-pinned EVDI preload service."
+    sudo systemctl disable --now evdi-load.service 2>/dev/null || true
+    sudo rm -f /etc/systemd/system/evdi-load.service
+    sudo systemctl daemon-reload
+  fi
+
+  log_info "Building EVDI for kernel ${kernel_ver}."
+  if sudo dkms autoinstall -k "$kernel_ver" && sudo depmod -a "$kernel_ver" && modinfo evdi &>/dev/null; then
+    log_pass "EVDI is installed for kernel ${kernel_ver}."
+  else
+    log_fail "EVDI failed to build for kernel ${kernel_ver}; DisplayLink outputs will not work."
+    return 1
+  fi
+
   if sudo modprobe evdi; then
     log_pass "EVDI module loaded."
+    sudo systemctl enable --now displaylink.service || true
+    sudo systemctl restart displaylink.service || true
   else
-    log_warn "EVDI modprobe failed."
+    log_warn "EVDI modprobe failed; leaving DisplayLink stopped."
+    sudo systemctl stop displaylink.service 2>/dev/null || true
   fi
 
-  # Create a kernel-version-pinned one-shot to beat the startup race
-  if lsmod | grep -q '^evdi'; then
-    svc="/etc/systemd/system/evdi-load.service"
-    log_info "Ensuring EVDI preload service (before displaylink.service)…"
-    sudo tee "$svc" >/dev/null <<EOF
-[Unit]
-Description=Preload EVDI kernel module for DisplayLink
-Before=displaylink.service
-ConditionPathExists=/lib/modules/${kernel_ver}/kernel/drivers/gpu/drm/evdi/evdi.ko.zst
-
-[Service]
-Type=oneshot
-ExecStart=/sbin/modprobe evdi
-RemainAfterExit=yes
-
-[Install]
-WantedBy=multi-user.target
-EOF
-    sudo systemctl daemon-reload
-    sudo systemctl enable evdi-load.service || true
-    sudo systemctl restart evdi-load.service || true
-  fi
-
-  # DisplayLink service (okay if it can't light external displays)
-  sudo systemctl enable --now displaylink.service || true
-  sudo systemctl restart displaylink.service || true
-
-  if systemctl is-active --quiet displaylink.service; then
-    log_pass "displaylink.service active."
-  else
-    log_warn "displaylink.service inactive."
-  fi
+  systemctl is-active --quiet displaylink.service \
+    && log_pass "displaylink.service active." \
+    || log_warn "displaylink.service inactive."
 else
   log_info "No DisplayLink dock detected — skipping EVDI setup."
 fi
