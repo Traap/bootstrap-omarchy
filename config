@@ -1,172 +1,157 @@
-# config
-# {{{ Products to install. Listed alphabetically.
-#
-# Each *Flag controls whether a migration step installs, updates, or configures
-# a specific subsystem. `true` enables the step; `false` skips it.
-#
+# Personal customization for an already-installed Omarchy 4.5+ system.
+# All migration steps are opt-in. Stock packages/services remain Omarchy-owned.
+# See README.md for retired flags, aliases and the upgrade procedure.
 
-# Join system to Active Directory domain and configure Kerberos basics.
+# Join the configured Active Directory domain (site-specific).
 adFlag=false
 
-# Re-run Active Directory join steps for repairing broken domain association.
-adRejoinFlag=false
+# Repair DNS/NSS/SSSD for an existing AD membership; does not rejoin.
+adRepairFlag=false
 
-# Install Bash Git Prompt
+# Install an alternative personal Bash Git Prompt; stock Starship already exists.
 bashGitPromptFlag=false
 
-# Deploy personal bash configuration (.bashrc, .bash_profile, login scripts).
+# Compose personal Bash startup files with the Omarchy defaults.
 bashrcFlag=false
 
-# Install Brave browser and configure Omarchy integrations.
+# Install the selected Brave variant through Omarchy browser integration.
 braveBrowserFlag=false
 
-# Install system certificates required for enterprise or custom trust chains.
-certificatesFlag=false
-
-# Clone personal Git repositories under $cloneRoot.
+# Clone the personal gits repository collection under cloneRoot.
 cloneReposFlag=false
 
-# Install Docker and related container packages.
-dockerPackagesFlag=false
+# Install EVDI/DisplayLink for a connected dock, independently of power policy.
+displayLinkFlag=false
 
-# Install/update Traap's Python gits tool and its repository_locations.
+# Apply dockerServiceMode to the already-installed Docker services.
+dockerServiceFlag=false
+
+# Install the personal gits tool and configure its repository collection.
 gitsFlag=false
 
-# Install Hyprland window manager and its required dependencies.
-hyprlandFlag=false
+# Link personal Hyprland Lua overrides; Hyprland is already installed.
+hyprlandOverridesFlag=false
 
-# Install LuaRocks for Neovim plugins/modules requiring Lua compilation.
-luarocksFlag=false
+# Install additional Lua 5.1 rocks for personal Neovim plugins.
+luaRocksPackagesFlag=false
 
-# Install Microsoft programs.
-microsoftFlag=false
-
-# Refresh pacman mirrorlist using reflector for fastest regional mirrors.
+# Opt in to changing the configured pacman mirrors.
 mirrorFlag=false
 
-# Add mise
-miseFlag=false
+# Install extra npm CLI tools using the selected/inherited mise Node runtime.
+nodePackagesFlag=false
 
-# Install Node.js runtime (via mise) for frontend builds or tooling.
-nodeJsFlag=false
+# Install the personal nvims Neovim switching tool.
+nvimSwitcherFlag=false
 
-# Install system-level Neovim dependencies (lsp, treesitter, dev packages).
-nvimsFlag=false
-
-# Remove Omarchy's hardened Chromium browser build.
-omarchyChromiumBrowserFlag=false
-
-# Remove Omarchy's packaged Neovim (not personal git version).
+# Opt out of the packaged omarchy-nvim configuration; preserve nvim.
 omarchyNvimFlag=false
 
-# Install OpenSSH and OpenSSL (server startup is controlled by sshServerFlag).
-openSSLFlag=false
-
-# Remove orphaned packages via pacman -Rns.
-orphanedFlag=false
-
-# Install base terminal-only pacman packages.
+# Install extra personal repository packages, excluding the stock desktop tools.
 pacmanPackagesFlag=false
 
-# Install Python packages using pip or mise.
-pipPackagesFlag=false
+# Install isolated Python CLI applications through pipx.
+pythonCliPackagesFlag=false
 
-# Install and enable redis for Ruby on Rails applications.
-redisFlag=false
-
-# Install Ruby on Rails via gem or mise-managed Ruby.
+# Install Rails using the explicitly configured rubyVersion; SQL clients are separate.
 railsFlag=false
 
-# Install Ruby via mise (controlled by rubyVersion).
+# Install/enable the selected local Redis/Valkey provider for applications.
+redisFlag=false
+
+# Select the explicit rubyVersion globally through packaged mise.
 rubyFlag=false
 
-# Link a Quattro Omarchy Shell configuration from $dotfiles/omarchy/shell.json.
+# Link personal Omarchy Shell JSON overrides.
 shellConfigFlag=false
 
-# Disable automatic snapshot timers/services; preserve existing snapshots.
-snapshotFlag=false
+# Customize number-based Snapper retention; preserve creation and boot integration.
+snapshotRetentionFlag=false
 
-# Install Starship Prompt
-starshipFlag=false
-
-# Create a personal SSH authentication key named after archHostName.
-sshHostKeyFlag=false
-
-# Enable incoming SSH connections after installing OpenSSH.
-sshServerFlag=true
-
-# Create symlinks from dotfiles into $HOME.
-symlinksFlag=false
-
-# Configure ODBC/FreeTDS/MS SQL connectivity.
+# Install UnixODBC/FreeTDS client support; does not install a database server.
 sqlFlag=false
 
-# Install TeX Live packages needed for LaTeX toolchain.
+# Ensure OpenSSH client tools are installed; does not enable incoming connections.
+sshClientFlag=false
+
+# Create/preserve the personal SSH authentication identity named sshKeyName.
+sshIdentityFlag=false
+
+# Independently install, validate, and enable the incoming SSH server.
+sshServerFlag=false
+
+# Link personal dotfiles, including the canonical XDG tmux directory.
+symlinksFlag=false
+
+# Install the selected optional TeX collections.
 texPackagesFlag=false
 
-# Install ThinkPad hardware support (tlp, sensors, fans, docks, displaylink).
-thinkpadFlag=false
+# Configure sensors/dock drivers on detected ThinkPads; preserve power policy.
+thinkpadSupportFlag=false
 
-# Install tmux plugins and reload environment.
+# Explicitly replace the current power-profiles provider with TLP on a ThinkPad.
+thinkpadTlpFlag=false
+
+# Install personal TPM plugins using an isolated tmux server.
 tmuxPluginsFlag=false
 
-# Generate UTF-8 locale
-utf8Flag=false
-
-# Install software VPN related software.
+# Install/configure the site-specific SNX-RS client with certificate checks.
 vpnFlag=false
 
-# Install optional legacy Waybar configuration instead of Quattro's shell bar.
+# Install Visual Studio Code through Omarchy AUR package management.
+vscodeFlag=false
+
+# Link a legacy Waybar configuration; requires targetProfile=legacy-waybar.
 waybarFlag=false
 
-# Configure WSL2
+# Merge WSL settings; requires targetProfile=wsl and an actual WSL kernel.
 wslFlag=false
 
-# Install AUR packages with yay.
-yayPackagesFlag=false
+# Install optional legacy X11 tools separately from the Wayland package overlay.
+x11ToolsFlag=false
 
-# -------------------------------------------------------------------------- }}}
-# {{{ Personal customization
+# Profile gates: desktop, legacy-waybar, or wsl. A profile does not enable flags.
+targetProfile=desktop
 
-# The root personal repositories are cloned to.
+# Personal repositories and dotfiles.
 cloneRoot=$HOME/git
-
-# The location of your personal dot files.
 dotfiles=$HOME/git/dotfiles
 
-# The email associated with git commit messages.
-gitEmail="gary.a.howard@mac.com"
-
-# Git user name used for commit messages.
+# SSH key comment and identity filename (does not set the system hostname).
 gitUserName="Traap"
+sshKeyName=DarkKnight
 
-# Ruby version to install with mise.
+# Intentional application runtime override; keep native defaults if not needed.
 rubyVersion='ruby@4'
+# Optional explicit mise token, e.g. node@24; blank preserves inherited selection.
+nodeVersion=''
 
-# Hostname to assign to this Arch system.
-archHostName=DarkKnight
+# Browser integration: brave or brave-origin.
+braveVariant=brave
+# Docker startup: socket (Omarchy default) or daemon. No docker-group changes.
+dockerServiceMode=socket
 
-# Primary user for the system.
-archUserName=traap
+# Custom root snapshot retention (normal/important counts are independent).
+# Defaults match the current Omarchy template; edit before enabling the flag.
+snapshotConfigName=root
+snapshotNumberLimit=5
+snapshotImportantLimit=5
+snapshotMinAge=0
 
-# Region passed to reflector for optimizing mirrors.
+# Only the WSL step uses these; they do not change a native desktop's hostname.
+wslHostName=DarkKnight
+wslUserName=traap
+
 reflectorLocation="United States"
 
-# Timezone (informational; not yet applied).
-timezone=America/Los_Angeles
-
-# Active Directory constants
+# Site-specific AD integration.
 AD_DOMAIN="ent.co.ventura.ca.us"
 AD_REALM="ENT.CO.VENTURA.CA.US"
 AD_DNS1="10.130.5.98"
 AD_DNS2="10.130.5.100"
 AD_USER="135272"
-LOG_FILE="ad-integration.log"
 
-# VPN connetion information
-VPN_INTERFACE="snx-xfrm"
+# Site-specific VPN parameters; obtain the login type from the server.
 VPN_LOGIN_TYPE="vpn"
 VPN_SERVER="157.145.220.225"
 VPN_TUNNEL_TYPE="ipsec"
-
-# -------------------------------------------------------------------------- }}}

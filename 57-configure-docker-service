@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+if [[ ${dockerServiceFlag:-false} != true ]]; then
+  log_info 'Docker service policy skipped.'
+  return 0
+fi
+require_cmd docker
+case ${dockerServiceMode:-socket} in
+  socket)
+    # Leave any running daemon/containers alone; change future startup policy.
+    sudo systemctl disable docker.service
+    sudo systemctl enable --now docker.socket
+    sudo systemctl is-active --quiet docker.socket
+    ;;
+  daemon)
+    sudo systemctl enable --now docker.service
+    sudo systemctl is-active --quiet docker.service
+    ;;
+  *) log_fail 'dockerServiceMode must be socket or daemon.'; return 1 ;;
+esac

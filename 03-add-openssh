@@ -1,24 +1,9 @@
 #!/usr/bin/env bash
-# openssh
-
-if [[ ${openSSLFlag:-false} == true ]]; then
-  log_info 'Installing OpenSSH and OpenSSL.'
-else
-  log_info 'openssl skipped.'
-  return;
+# Install client tools only; incoming connections are a separate opt-in.
+if [[ ${sshClientFlag:-false} != true ]]; then
+  log_info 'SSH client tools skipped.'
+  return 0
 fi
-
-# Install OpenSSH and OpenSSL
-log_info "Installing OpenSSH and OpenSSL..."
-sudo pacman -S --noconfirm --noprogressbar --needed openssh openssl
-
-# Server startup is independent of installing client tools and libraries.
-if [[ ${sshServerFlag:-false} == true ]]; then
-  log_info "Enabling and starting sshd service..."
-  sudo systemctl enable --now sshd.service
-  sudo systemctl --no-pager --full status sshd.service
-fi
-
-log_info "Verifying installed versions"
+sudo pacman -S --noconfirm --noprogressbar --needed openssh
+require_cmd ssh ssh-keygen
 ssh -V
-openssl version

@@ -155,3 +155,60 @@ configure_tmux_links() {
   done
 }
 export -f configure_tmux_links
+
+is_thinkpad() {
+  local directory=${1:-/sys/class/dmi/id} vendor product version
+  vendor=$(cat "$directory/sys_vendor" 2>/dev/null) || return 1
+  product=$(cat "$directory/product_name" 2>/dev/null) || return 1
+  version=$(cat "$directory/product_version" 2>/dev/null) || version=''
+  [[ ${vendor,,} == *lenovo* || ${vendor,,} == *ibm* ]] &&
+    [[ ${product,,} == *thinkpad* || ${version,,} == *thinkpad* ]]
+}
+export -f is_thinkpad
+
+# Compatibility is explicit: old active flags must not disappear silently.
+normalize_config() {
+  local quiet=${1:-false} old new value mapping
+  local aliases=(
+    adRejoinFlag:adRepairFlag hyprlandFlag:hyprlandOverridesFlag
+    nvimsFlag:nvimSwitcherFlag microsoftFlag:vscodeFlag
+    luarocksFlag:luaRocksPackagesFlag nodeJsFlag:nodePackagesFlag
+    openSSLFlag:sshClientFlag sshHostKeyFlag:sshIdentityFlag
+    pipPackagesFlag:pythonCliPackagesFlag dockerPackagesFlag:dockerServiceFlag
+    thinkpadFlag:thinkpadSupportFlag archHostName:sshKeyName
+    archHostName:wslHostName archUserName:wslUserName
+  )
+  # This setting used to be inert unless openSSLFlag was true. Do not turn an
+  # old default config into a new request to enable incoming connections.
+  if [[ ${openSSLFlag:-} == false && ${sshServerFlag:-false} == true ]]; then
+    log_fail 'sshServerFlag is now independent. Set it explicitly after removing openSSLFlag; no steps were applied.' >&2
+    return 1
+  fi
+  for old in miseFlag starshipFlag certificatesFlag utf8Flag orphanedFlag omarchyChromiumBrowserFlag yayPackagesFlag snapshotFlag; do
+    value=${!old:-false}
+    if [[ $value != false ]]; then
+      log_fail "Retired setting $old=$value: see README.md before running migrations." >&2
+      return 1
+    fi
+  done
+  for mapping in "${aliases[@]}"; do
+    old=${mapping%%:*}
+    new=${mapping#*:}
+    [[ -v $old ]] || continue
+    value=${!old}
+    if [[ -v $new && ${!new} != "$value" ]]; then
+      log_fail "Conflicting settings: $old and $new. Keep only $new." >&2
+      return 1
+    fi
+    printf -v "$new" '%s' "$value"
+    [[ $quiet == true ]] || log_warn "Deprecated $old; use $new." >&2
+  done
+  if [[ ${dockerPackagesFlag:-false} == true && ! -v dockerServiceMode ]]; then
+    dockerServiceMode=daemon
+  fi
+  case ${targetProfile:-desktop} in
+    desktop|legacy-waybar|wsl) ;;
+    *) log_fail 'targetProfile must be desktop, legacy-waybar, or wsl.' >&2; return 1 ;;
+  esac
+}
+export -f normalize_config

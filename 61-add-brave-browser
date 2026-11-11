@@ -1,17 +1,12 @@
 #!/usr/bin/env bash
-# bravebrowser
-
-if [[ ${braveBrowserFlag:-false} == true ]]; then
-  log_info "Installing Brave Browser..."
-else
-  log_info "Brave Browser skipped."
-  return;
+if [[ ${braveBrowserFlag:-false} != true ]]; then
+  log_info 'Brave Browser skipped.'
+  return 0
 fi
-
-# Add Brave browser
-if ! command -v curl &>/dev/null; then
-  log_fail "curl command not found — ensure curl is installed."
-  return 1
-fi
-
-run_installer "https://dl.brave.com/install.sh" sh
+case ${braveVariant:-brave} in
+  brave|brave-origin) ;;
+  *) log_fail 'braveVariant must be brave or brave-origin.'; return 1 ;;
+esac
+require_cmd omarchy
+# The native installer configures browser policy, flags and lifecycle hooks.
+omarchy install browser "${braveVariant:-brave}"

@@ -30,7 +30,7 @@ def add(path, ancestors=frozenset()):
                 add(child, ancestors | {resolved})
 
 for name in (step, 'config', 'functions', 'migration', 'ssh-config-template',
-             'wsl-template.conf', 'repository_locations.yml', 'mise.toml'):
+             'wsl-template.conf', 'repository_locations.yml'):
     add(root / name)
 for helper in sorted((root / 'scripts').iterdir()):
     if helper.suffix in ('.py', '.sh'):

@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+# Change only number-based retention; preserve creation and boot integration.
+if [[ ${snapshotRetentionFlag:-false} != true ]]; then
+  log_info 'Custom snapshot retention skipped.'
+  return 0
+fi
+[[ ${snapshotConfigName:-root} =~ ^[a-zA-Z0-9_-]+$ ]] || {
+  log_fail 'snapshotConfigName must be a simple Snapper config name.'
+  return 1
+}
+for setting in snapshotNumberLimit snapshotImportantLimit; do
+  value=${!setting:-}
+  [[ $value =~ ^[1-9][0-9]*$ ]] || {
+    log_fail "$setting must be a positive integer."
+    return 1
+  }
+done
+[[ ${snapshotMinAge:-0} =~ ^[0-9]+$ ]] || {
+  log_fail 'snapshotMinAge must be a nonnegative number of seconds.'
+  return 1
+}
+require_cmd snapper
+snapshot_config="/etc/snapper/configs/${snapshotConfigName:-root}"
+sudo test -f "$snapshot_config" || {
+  log_fail "Snapper configuration is missing: $snapshot_config; configure snapshots with Omarchy first."
+  return 1
+}
+sudo snapper --no-dbus --config "${snapshotConfigName:-root}" get-config >/dev/null
+backup_system_file "$snapshot_config"
+sudo snapper --no-dbus --config "${snapshotConfigName:-root}" set-config \
+  NUMBER_CLEANUP=yes \
+  "NUMBER_LIMIT=$snapshotNumberLimit" \
+  "NUMBER_LIMIT_IMPORTANT=$snapshotImportantLimit" \
+  "NUMBER_MIN_AGE=${snapshotMinAge:-0}"
+log_pass 'Snapshot retention configured; creation and boot integration preserved. No cleanup was run.'

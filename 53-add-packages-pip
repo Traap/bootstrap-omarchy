@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
-# pip packages
+# Isolated Python CLI applications
 set -euo pipefail
 
-if [[ ${pipPackagesFlag:-false} == true ]]; then
-  log_info "Installing pip packages..."
+if [[ ${pythonCliPackagesFlag:-false} == true ]]; then
+  log_info "Installing isolated Python CLI applications..."
 else
-  log_info "pip packages skipped."
+  log_info "Python CLI applications skipped."
   return;
 fi
 
-# Instal pip packages.
+# Additional Python CLI applications.
 pip_packages=(
   neovim-remote
 )

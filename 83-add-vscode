@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+if [[ ${vscodeFlag:-false} != true ]]; then
+  log_info 'Visual Studio Code skipped.'
+  return 0
+fi
+require_cmd omarchy
+omarchy pkg aur add visual-studio-code-bin

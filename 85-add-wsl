@@ -8,9 +8,14 @@ else
   return;
 fi
 
+[[ ${targetProfile:-desktop} == wsl ]] || {
+  log_fail '85-add-wsl requires targetProfile=wsl.'
+  return 1
+}
+
 is_wsl || { log_fail "WSL configuration requested on a non-WSL kernel."; return 1; }
 require_cmd python3
-[[ $archHostName =~ ^[[:alnum:]][[:alnum:].-]*$ && $archUserName =~ ^[a-z_][a-z0-9_-]*\$?$ ]] || {
+[[ $wslHostName =~ ^[[:alnum:]][[:alnum:].-]*$ && $wslUserName =~ ^[a-z_][a-z0-9_-]*\$?$ ]] || {
   log_fail "Invalid WSL hostname or user name."
   return 1
 }
@@ -22,7 +27,7 @@ require_cmd python3
   else
     cat "$MIGRATION_ROOT/wsl-template.conf"
   fi | python3 "$MIGRATION_ROOT/scripts/merge-ini.py" \
-    network hostname "$archHostName" user default "$archUserName" \
+    network hostname "$wslHostName" user default "$wslUserName" \
     interop enabled true interop appendWindowsPath false > "$wsl_config"
   install_system_file "$wsl_config" /etc/wsl.conf
 )

@@ -1,0 +1,60 @@
+#!/usr/bin/env bash
+# Replacing the distribution's power policy requires its own explicit opt-in.
+if [[ ${thinkpadTlpFlag:-false} != true ]]; then
+  log_info 'ThinkPad TLP policy skipped.'
+  return 0
+fi
+is_thinkpad || { log_info 'No ThinkPad detected; TLP policy skipped.'; return 77; }
+provider=''
+for candidate in omarchy-power-profiles-daemon power-profiles-daemon; do
+  if pacman -Q "$candidate" >/dev/null 2>&1; then
+    provider=$candidate
+    break
+  fi
+done
+(
+  provider_changed=false
+  was_enabled=false
+  was_active=false
+  introduced=()
+  for pkg in tlp tlp-rdw; do
+    if ! pacman -Q "$pkg" >/dev/null 2>&1; then introduced+=("$pkg"); fi
+  done
+  if [[ -n $provider ]]; then
+    if systemctl is-enabled --quiet power-profiles-daemon.service; then was_enabled=true; fi
+    if systemctl is-active --quiet power-profiles-daemon.service; then was_active=true; fi
+  fi
+  restore_provider() {
+    local status=$? pkg
+    local rollback_packages=()
+    if ((status != 0)) && [[ $provider_changed == true ]]; then
+      log_warn "TLP setup failed; restoring $provider."
+      for pkg in "${introduced[@]}"; do
+        if pacman -Q "$pkg" >/dev/null 2>&1; then
+          rollback_packages+=("$pkg")
+        fi
+      done
+      if ((${#rollback_packages[@]})); then
+        sudo pacman -R --noconfirm "${rollback_packages[@]}" || log_warn 'Could not remove newly installed TLP packages during recovery.'
+      fi
+      if sudo pacman -S --noconfirm --needed "$provider"; then
+        if $was_enabled; then sudo systemctl enable power-profiles-daemon.service || log_fail 'Provider restored, but enabling its service failed.'; fi
+        if $was_active; then sudo systemctl start power-profiles-daemon.service || log_fail 'Provider restored, but starting its service failed.'; fi
+      else
+        log_fail "Automatic restoration failed; reinstall $provider before relying on power profiles."
+      fi
+    fi
+    return "$status"
+  }
+  trap restore_provider EXIT
+  if [[ -n $provider ]]; then
+    provider_changed=true
+    sudo systemctl disable --now power-profiles-daemon.service
+    # Pacman refuses removal if dependencies require this provider.
+    sudo pacman -R --noconfirm "$provider"
+  fi
+  sudo pacman -S --noconfirm --noprogressbar --needed tlp tlp-rdw
+  sudo systemctl enable --now tlp.service
+  sudo systemctl is-active --quiet tlp.service
+  provider_changed=false
+)

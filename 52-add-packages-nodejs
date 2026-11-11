@@ -1,25 +1,33 @@
 #!/usr/bin/env bash
-# NodeJs packages
-
-if [[ ${nodeJsFlag:-false} == true ]]; then
-  log_info "Installing NodeJS packages..."
-else
-  log_info "NodeJS packages skipped."
-  return;
+if [[ ${nodePackagesFlag:-false} != true ]]; then
+  log_info 'Additional npm tools skipped.'
+  return 0
 fi
-
-nodejs_packages=(
-  "@mermaid-js/mermaid-cli"
-  "@openai/codex"
-  "neovim"
-  "node-gyp"
-  "pm2"
-  "semver"
-  "ts-node"
-  "yarn"
-)
-
+if [[ -n ${nodeVersion:-} && ! $nodeVersion =~ ^node@[^[:space:]]+$ ]]; then
+  log_fail 'nodeVersion must be blank or a mise Node token such as node@24.'
+  return 1
+fi
 require_cmd mise
-mise use --global node@latest
-mise exec node@latest -- npm install -g "${nodejs_packages[@]}"
-log_pass "NodeJS packages installed."
+nodejs_packages=(
+  '@mermaid-js/mermaid-cli'
+  'neovim'
+  'node-gyp'
+  'pm2'
+  'semver'
+  'ts-node'
+  'yarn'
+)
+(
+  # Do not let a bootstrap checkout select a project's runtime or write a
+  # project mise.toml. Preserve the user's/Omarchy's inherited Node selection.
+  cd "$HOME"
+  node_runtime=${nodeVersion:-node}
+  if [[ -n ${nodeVersion:-} ]]; then
+    mise install "$node_runtime"
+  else
+    require_cmd omarchy
+    omarchy install dev-env node
+  fi
+  mise exec "$node_runtime" -- npm install -g "${nodejs_packages[@]}"
+)
+log_pass 'Additional npm tools installed; Omarchy-managed agent CLIs were left to Omarchy.'

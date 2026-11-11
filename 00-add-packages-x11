@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+# Optional legacy X11 tooling, separate from the Wayland desktop overlay.
+if [[ ${x11ToolsFlag:-false} != true ]]; then
+  log_info 'Legacy X11 tools skipped.'
+  return 0
+fi
+sudo pacman -S --noconfirm --noprogressbar --needed screenkey slop

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # luarocks packages
 
-if [[ ${luarocksFlag:-false} == true ]]; then
+if [[ ${luaRocksPackagesFlag:-false} == true ]]; then
   log_info "Installing LuaRocks packages..."
 else
   log_info "LuaRocks packages skipped."
@@ -13,7 +13,6 @@ luarocks_packages=(
   jsregexp
 )
 
-sudo pacman -S --noconfirm --noprogressbar --needed luarocks lua51
 require_cmd luarocks
 for pkg in "${luarocks_packages[@]}"; do
   sudo luarocks --lua-version=5.1 install "$pkg"

@@ -1,6 +1,11 @@
 # Numbered migration script review
 
-## Implementation status
+## Earlier implementation status
+
+For the subsequent Omarchy 4.5+ retirement, renamed flags, native integrations,
+and platform/power-policy split, see [the README upgrade guide](README.md#upgrading-an-existing-config). The
+step inventory and original findings below describe the earlier audit.
+
 
 The findings below record the original review. The subsequent fixes address
 the confirmed defects across the numbered steps and migration runner:

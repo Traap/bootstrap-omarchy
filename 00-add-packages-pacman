@@ -10,29 +10,25 @@ fi
 
 # Install pacman packages.
 pacman_packages=(
-  "base-devel"
   "cmake"
+  "flameshot"
+  "freerdp"
   "ghostty"
-  "less"
+  "go"
+  "graphviz"
   "luacheck"
   "meld"
   "ninja"
-  "openssh"
-  "openssl"
-  "python"
+  "pandoc-cli"
   "python-pynvim"
-  "screenkey"
+  "ripgrep-all"
   "selene"
-  "slop"
   "stylua"
-  "tmux"
-  "tree-sitter-cli"
-  "unzip"
   "vim"
   "wget"
   "which"
+  "yazi"
 )
 
 sudo pacman -S --noconfirm  --noprogressbar --needed "${pacman_packages[@]}"
-sudo pacman -Fy
 hash -r

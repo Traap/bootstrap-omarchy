@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+if [[ ${sshServerFlag:-false} != true ]]; then
+  log_info 'SSH server setup skipped.'
+  return 0
+fi
+sudo pacman -S --noconfirm --noprogressbar --needed openssh
+# Server host keys belong to sshd, independently of personal SSH identities.
+sudo ssh-keygen -A
+sudo /usr/bin/sshd -t
+sudo systemctl enable --now sshd.service
+sudo systemctl is-active --quiet sshd.service

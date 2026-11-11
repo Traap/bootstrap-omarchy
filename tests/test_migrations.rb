@@ -2,7 +2,7 @@
 
 # Regression tests use temporary homes and command mocks, never host mutation.
 require 'fileutils'
-gem 'minitest', '~> 5.0'
+gem 'minitest', '>= 5.0', '< 7'
 require 'minitest/autorun'
 require 'open3'
 require 'pathname'
@@ -59,9 +59,9 @@ class MigrationTests < Minitest::Test
 
   def test_required_install_failures_propagate
     cases = {
-      '52-add-packages-nodejs' => 'nodeJsFlag=true; mise() { return 42; }',
-      '53-add-packages-pip' => 'pipPackagesFlag=true; sudo() { :; }; pipx() { return 42; }',
-      '54-add-packages-luarocks' => 'luarocksFlag=true; sudo() { if [[ $1 == pacman ]]; then return 0; fi; "$@"; }; luarocks() { return 42; }',
+      '52-add-packages-nodejs' => 'nodePackagesFlag=true; omarchy() { :; }; mise() { return 42; }',
+      '53-add-packages-pip' => 'pythonCliPackagesFlag=true; sudo() { :; }; pipx() { return 42; }',
+      '54-add-packages-luarocks' => 'luaRocksPackagesFlag=true; sudo() { if [[ $1 == pacman ]]; then return 0; fi; "$@"; }; luarocks() { return 42; }',
       '59-add-ruby' => 'rubyFlag=true; rubyVersion=ruby@4; mise() { return 42; }',
       '60-add-rails' => 'railsFlag=true; rubyVersion=ruby@4; sudo() { :; }; mise() { return 42; }',
       '70-add-vpn' => 'vpnFlag=true; yay() { return 42; }; sudo() { :; }'
@@ -72,9 +72,9 @@ class MigrationTests < Minitest::Test
   def test_ssh_creation_rerun_recovery_and_protection
     # Force empty passphrases for temporary test keys only.
     setup = <<~'BASH'
-      sshHostKeyFlag=true
+      sshIdentityFlag=true
       cloneRoot="$HOME/custom git"
-      archHostName=TestHost
+      sshKeyName=TestHost
       gitUserName=Tester
       ssh-keygen() { command ssh-keygen "$@" -N ''; }
     BASH
@@ -100,29 +100,31 @@ class MigrationTests < Minitest::Test
     (@home / '.ssh/known_hosts').write('preserve')
     refute_equal 0, step('04-add-ssh-keys', setup).exitstatus
     assert_equal 'preserve', (@home / '.ssh/known_hosts').read
-    refute_equal 0, step('04-add-ssh-keys', setup.sub('archHostName=TestHost', "archHostName='bad host'")).exitstatus
+    refute_equal 0, step('04-add-ssh-keys', setup.sub('sshKeyName=TestHost', "sshKeyName='bad host'")).exitstatus
   end
 
   def test_ssh_correct_dangling_directory_link
     (@home / '.ssh').make_symlink(@home / 'git/ssh')
     assert_success step('04-add-ssh-keys', <<~'BASH')
-      sshHostKeyFlag=true
-      cloneRoot="$HOME/git"; archHostName=TestHost; gitUserName=Tester
+      sshIdentityFlag=true
+      cloneRoot="$HOME/git"; sshKeyName=TestHost; gitUserName=Tester
       ssh-keygen() { command ssh-keygen "$@" -N ''; }
     BASH
   end
 
-  def test_ssh_server_setting_controls_service_startup
+  def test_ssh_client_and_server_are_independent
     setup = <<~'BASH'
-      openSSLFlag=true
       sudo() { printf '%s\n' "$*" >> "$HOME/commands"; }
-      ssh() { :; }; openssl() { :; }
+      ssh() { :; }; ssh-keygen() { :; }
     BASH
-    assert_success step('03-add-openssh', setup + 'sshServerFlag=true')
-    assert_includes (@home / 'commands').read, 'systemctl enable --now sshd.service'
-    (@home / 'commands').unlink
-    assert_success step('03-add-openssh', setup + 'sshServerFlag=false')
+    assert_success step('03-add-openssh', setup + 'sshClientFlag=true; sshServerFlag=false')
     refute_includes (@home / 'commands').read, 'systemctl'
+    (@home / 'commands').unlink
+    assert_success step('03-enable-ssh-server', setup + 'sshClientFlag=false; sshServerFlag=true')
+    commands = (@home / 'commands').read
+    assert_includes commands, 'ssh-keygen -A'
+    assert_includes commands, '/usr/bin/sshd -t'
+    assert_includes commands, 'systemctl enable --now sshd.service'
   end
 
   def test_bashrc_rendering_preserves_symlink_target_and_reruns
@@ -141,16 +143,8 @@ class MigrationTests < Minitest::Test
     assert_equal backups, @home.glob('.bashrc.bak.*')
   end
 
-  def test_missing_snapshot_units_are_skipped
-    assert_success step('99-diable-omarchy-snapshots', <<~'BASH')
-      snapshotFlag=true
-      systemctl() { printf '%s\n' not-found; }
-      sudo() { return 42; }
-    BASH
-  end
-
   def test_wsl_guard_prevents_system_changes
-    result = step('85-add-wsl', 'wslFlag=true; is_wsl() { return 1; }; sudo() { touch "$HOME/unexpected"; }')
+    result = step('85-add-wsl', 'wslFlag=true; targetProfile=wsl; is_wsl() { return 1; }; sudo() { touch "$HOME/unexpected"; }')
     refute_equal 0, result.exitstatus
     refute (@home / 'unexpected').exist?
   end
@@ -266,26 +260,6 @@ class MigrationTests < Minitest::Test
     refute_includes result.stdout, 'TMUX plugins installed;'
   end
 
-  def test_starship_decline_skips_without_running_installer
-    setup = 'starshipFlag=true; run_installer() { touch "$HOME/installer-ran"; }'
-    ["N\n", "n\n", "\n", ''].each do |answer|
-      result = step('09-add-starship-prompt', setup, input: answer)
-      assert_equal 77, result.exitstatus
-      assert_includes result.stdout, 'Starship installation declined; continuing migration.'
-      refute (@home / 'installer-ran').exist?
-    end
-  end
-
-  def test_starship_acceptance_runs_installer_and_preserves_failures
-    setup = <<~'BASH'
-      starshipFlag=true
-      run_installer() { printf '%s\n' "$*" > "$HOME/installer-args"; return 42; }
-    BASH
-    result = step('09-add-starship-prompt', setup, input: "Y\n")
-    assert_equal 42, result.exitstatus
-    assert_equal "https://starship.rs/install.sh sh --yes\n", (@home / 'installer-args').read
-  end
-
   def test_installer_cleanup_after_failure
     downloads = @home / 'downloads'
     downloads.mkdir
@@ -347,10 +321,261 @@ class MigrationTests < Minitest::Test
     assert_equal 'enp1s0', result.stdout.strip
   end
 
+  def test_default_config_has_exactly_one_inactive_flag_per_step
+    settings = (ROOT / 'config').read.scan(/^(\w+Flag)=(true|false)$/).to_h
+    primary = STEPS.map { |path| path.read[/\$\{?(\w+Flag)/, 1] }
+    assert_equal primary.sort, settings.keys.sort
+    assert settings.values.all? { |value| value == 'false' }
+    result = bash('./migration --dry-run')
+    assert_success result
+    refute_includes result.stdout, 'Would run:'
+  end
+
+  def test_retired_bootstrap_files_are_removed
+    %w[00-add-packages-yay 09-add-starship-prompt 10-update-ca-certificated
+       11-generate-utf-8 50-add-mise 62-remove-omarchy-chromium
+       81-remove-orphaned-packages 99-diable-omarchy-snapshots mise.toml].each do |name|
+      refute (ROOT / name).exist?, name
+    end
+  end
+
+  def test_native_browser_and_vscode_installers_are_used
+    setup = <<~'BASH'
+      omarchy() { printf '%s\n' "$*" >> "$HOME/native-commands"; }
+      sudo() { return 42; }
+    BASH
+    assert_success step('61-add-brave-browser', setup + 'braveBrowserFlag=true; braveVariant=brave-origin')
+    assert_success step('83-add-vscode', setup + 'vscodeFlag=true')
+    assert_includes (@home / 'native-commands').read, 'install browser brave-origin'
+    assert_includes (@home / 'native-commands').read, 'pkg aur add visual-studio-code-bin'
+    result = step('61-add-brave-browser', setup + 'braveBrowserFlag=true; braveVariant=unknown')
+    refute_equal 0, result.exitstatus
+  end
+
+  def test_docker_socket_policy_does_not_stop_containers_or_install_packages
+    setup = <<~'BASH'
+      dockerServiceFlag=true
+      docker() { :; }
+      sudo() { printf '%s\n' "$*" >> "$HOME/docker-commands"; }
+    BASH
+    assert_success step('57-configure-docker-service', setup + 'dockerServiceMode=socket')
+    commands = (@home / 'docker-commands').read
+    assert_includes commands, "systemctl disable docker.service\n"
+    assert_includes commands, 'systemctl enable --now docker.socket'
+    refute_includes commands, 'disable --now'
+    refute_includes commands, 'pacman'
+    assert_success step('57-configure-docker-service', setup + 'dockerServiceMode=daemon')
+    assert_includes (@home / 'docker-commands').read, 'systemctl enable --now docker.service'
+    refute_equal 0, step('57-configure-docker-service', setup + 'dockerServiceMode=invalid').exitstatus
+  end
+
+  def test_node_packages_preserve_inherited_selection_and_omit_managed_agents
+    setup = <<~'BASH'
+      nodePackagesFlag=true
+      omarchy() { printf '%s|%s\n' "$PWD" "$*" >> "$HOME/node-commands"; }
+      mise() { printf '%s|%s\n' "$PWD" "$*" >> "$HOME/node-commands"; }
+    BASH
+    assert_success step('52-add-packages-nodejs', setup + "nodeVersion=''")
+    commands = (@home / 'node-commands').read
+    assert_includes commands, "#{@home}|install dev-env node"
+    assert_includes commands, "#{@home}|exec node -- npm install -g"
+    refute_includes commands, '@openai/codex'
+    refute_includes commands, 'use --global'
+    (@home / 'node-commands').unlink
+    assert_success step('52-add-packages-nodejs', setup + 'nodeVersion=node@24')
+    commands = (@home / 'node-commands').read
+    assert_includes commands, 'install node@24'
+    assert_includes commands, 'exec node@24 -- npm install -g'
+    refute_includes commands, 'install dev-env'
+    refute_equal 0, step('52-add-packages-nodejs', setup + 'nodeVersion=ruby@4').exitstatus
+  end
+
+  def test_rails_does_not_install_unrelated_database_clients
+    setup = <<~'BASH'
+      railsFlag=true; rubyVersion=ruby@4
+      mise() { printf '%s\n' "$*" >> "$HOME/ruby-commands"; }
+      sudo() { return 42; }
+    BASH
+    assert_success step('60-add-rails', setup)
+    assert_includes (@home / 'ruby-commands').read, 'exec ruby@4 -- gem install rails --no-document'
+  end
+
+  def test_thinkpad_detection_rejects_other_lenovo_products
+    dmi = @home / 'dmi'; dmi.mkdir
+    (dmi / 'sys_vendor').write('LENOVO')
+    (dmi / 'product_name').write('Yoga')
+    (dmi / 'product_version').write('Slim')
+    refute_equal 0, bash('source ./functions; is_thinkpad "$HOME/dmi"').exitstatus
+    (dmi / 'product_version').write('ThinkPad T14')
+    assert_success bash('source ./functions; is_thinkpad "$HOME/dmi"')
+  end
+
+  def test_sensor_setup_does_not_change_power_manager
+    setup = <<~'BASH'
+      thinkpadSupportFlag=true
+      is_thinkpad() { :; }
+      sudo() { printf '%s\n' "$*" >> "$HOME/hardware-commands"; }
+    BASH
+    assert_success step('97-thinkpad-support', setup)
+    commands = (@home / 'hardware-commands').read
+    assert_includes commands, 'sensors-detect --auto'
+    refute_includes commands, 'tlp'
+    refute_includes commands, 'power-profiles'
+    refute_equal 0, step('97-thinkpad-support', setup + 'is_thinkpad() { return 1; }').exitstatus
+  end
+
+  def tlp_setup(fail_install: false)
+    <<~BASH
+      thinkpadTlpFlag=true
+      is_thinkpad() { :; }
+      pacman() { [[ $* == '-Q omarchy-power-profiles-daemon' ]]; }
+      systemctl() { return 0; }
+      sudo() {
+        printf '%s\n' "$*" >> "$HOME/power-commands"
+        if [[ $* == 'pacman -S --noconfirm --noprogressbar --needed tlp tlp-rdw' ]]; then
+          return #{fail_install ? 42 : 0}
+        fi
+        return 0
+      }
+    BASH
+  end
+
+  def test_tlp_targets_the_installed_omarchy_power_manager
+    assert_success step('97-thinkpad-tlp', tlp_setup)
+    commands = (@home / 'power-commands').read
+    assert_includes commands, 'pacman -R --noconfirm omarchy-power-profiles-daemon'
+    assert_includes commands, 'systemctl enable --now tlp.service'
+    refute_includes commands, "pacman -R --noconfirm power-profiles-daemon\n"
+  end
+
+  def test_tlp_install_failure_restores_previous_power_manager
+    result = step('97-thinkpad-tlp', tlp_setup(fail_install: true))
+    assert_equal 42, result.exitstatus
+    commands = (@home / 'power-commands').read
+    assert_includes commands, 'pacman -S --noconfirm --needed omarchy-power-profiles-daemon'
+    assert_includes commands, 'systemctl start power-profiles-daemon.service'
+  end
+
+  def test_tlp_service_failure_removes_new_packages_before_restoring_provider
+    setup = <<~'BASH'
+      thinkpadTlpFlag=true
+      is_thinkpad() { :; }
+      pacman() {
+        [[ $* == '-Q omarchy-power-profiles-daemon' ]] && return 0
+        [[ $* == '-Q tlp' || $* == '-Q tlp-rdw' ]] && [[ -f $HOME/tlp-installed ]]
+      }
+      systemctl() { return 0; }
+      sudo() {
+        printf '%s\n' "$*" >> "$HOME/power-commands"
+        case "$*" in
+          'pacman -S --noconfirm --noprogressbar --needed tlp tlp-rdw') touch "$HOME/tlp-installed" ;;
+          'systemctl enable --now tlp.service') return 42 ;;
+          'pacman -R --noconfirm tlp tlp-rdw') rm -f "$HOME/tlp-installed" ;;
+        esac
+        return 0
+      }
+    BASH
+    assert_equal 42, step('97-thinkpad-tlp', setup).exitstatus
+    commands = (@home / 'power-commands').read
+    removal = commands.index('pacman -R --noconfirm tlp tlp-rdw')
+    restore = commands.index('pacman -S --noconfirm --needed omarchy-power-profiles-daemon')
+    refute_nil removal
+    refute_nil restore
+    assert_operator removal, :<, restore
+    refute (@home / 'tlp-installed').exist?
+  end
+
+  def test_displaylink_without_a_connected_dock_is_retryable
+    setup = <<~'BASH'
+      displayLinkFlag=true
+      lsusb() { printf 'Intel USB controller\n'; }
+      yay() { return 42; }
+      sudo() { touch "$HOME/unexpected"; }
+    BASH
+    assert_equal 77, step('97-displaylink-support', setup).exitstatus
+    refute (@home / 'unexpected').exist?
+  end
+
+  def test_custom_snapshot_retention_preserves_creation_and_boot_services
+    setup = <<~'BASH'
+      snapshotRetentionFlag=true
+      snapshotConfigName=root; snapshotNumberLimit=12; snapshotImportantLimit=3; snapshotMinAge=300
+      snapper() { :; }
+      sudo() { printf '%s\n' "$*" >> "$HOME/snapshot-commands"; }
+      backup_system_file() { printf '%s\n' "$*" >> "$HOME/snapshot-backups"; }
+    BASH
+    assert_success step('99-configure-snapshot-retention', setup)
+    commands = (@home / 'snapshot-commands').read
+    assert_includes commands, 'snapper --no-dbus --config root set-config NUMBER_CLEANUP=yes NUMBER_LIMIT=12 NUMBER_LIMIT_IMPORTANT=3 NUMBER_MIN_AGE=300'
+    assert_equal "/etc/snapper/configs/root\n", (@home / 'snapshot-backups').read
+    refute_includes commands, 'systemctl'
+    refute_match(/TIMELINE|SUBVOLUME| create| delete| cleanup/, commands)
+  end
+
+  def test_invalid_snapshot_retention_is_rejected_before_privileged_operations
+    setup = <<~'BASH'
+      snapshotRetentionFlag=true
+      snapshotConfigName=root; snapshotNumberLimit=5; snapshotImportantLimit=5; snapshotMinAge=0
+      snapper() { :; }
+      sudo() { touch "$HOME/unexpected"; }
+    BASH
+    ['snapshotNumberLimit=0', 'snapshotImportantLimit=-1',
+     'snapshotMinAge=-1', "snapshotConfigName='../root'"].each do |invalid|
+      refute_equal 0, step('99-configure-snapshot-retention', setup + invalid).exitstatus
+      refute (@home / 'unexpected').exist?
+    end
+  end
+
+  def test_snapshot_retention_requires_an_existing_snapper_configuration
+    setup = <<~'BASH'
+      snapshotRetentionFlag=true
+      snapshotConfigName=root; snapshotNumberLimit=5; snapshotImportantLimit=5; snapshotMinAge=0
+      snapper() { :; }
+      sudo() { return 1; }
+      backup_system_file() { touch "$HOME/unexpected"; }
+    BASH
+    refute_equal 0, step('99-configure-snapshot-retention', setup).exitstatus
+    refute (@home / 'unexpected').exist?
+  end
+
+  def test_legacy_alias_is_applied_in_parent_and_step_subprocess
+    folder = fixture
+    (folder / '09-test-alias').write("if [[ ${hyprlandOverridesFlag:-false} == true ]]; then printf alias >> \"$HOME/aliases\"; fi\n")
+    (folder / 'config').open('a') { |stream| stream.write("hyprlandFlag=true\n") }
+    assert_success bash('./migration', cwd: folder)
+    assert_equal 'alias', (@home / 'aliases').read
+  end
+
+  def test_conflicting_or_retired_settings_fail_before_any_step_runs
+    ['hyprlandFlag=true; hyprlandOverridesFlag=false', 'starshipFlag=true',
+     'snapshotFlag=true', 'openSSLFlag=false; sshServerFlag=true'].each do |settings|
+      result = bash("source ./functions; #{settings}; normalize_config")
+      refute_equal 0, result.exitstatus, settings
+      assert_match(/Conflicting|Retired|now independent/, result.stderr)
+    end
+    folder = fixture
+    (folder / 'config').open('a') { |stream| stream.write("miseFlag=true\n") }
+    refute_equal 0, bash('./migration', cwd: folder).exitstatus
+    refute (@home / 'runs').exist?
+    refute (@home / 'state').exist?
+  end
+
+  def test_old_docker_flag_preserves_explicit_daemon_intent
+    result = bash('source ./functions; dockerPackagesFlag=true; normalize_config; [[ $dockerServiceFlag == true && $dockerServiceMode == daemon ]]')
+    assert_success result
+  end
+
+  def test_legacy_profiles_require_explicit_selection
+    setup = 'waybarFlag=true; dotfiles="$HOME/dotfiles"; targetProfile=desktop'
+    result = step('21-update-omarchy-waybar', setup)
+    refute_equal 0, result.exitstatus
+    assert_includes result.stdout, 'requires targetProfile=legacy-waybar'
+  end
+
   def fixture
     folder = @temp / 'repo'
     folder.mkdir
-    %w[migration functions ssh-config-template wsl-template.conf repository_locations.yml mise.toml].each do |name|
+    %w[migration functions ssh-config-template wsl-template.conf repository_locations.yml].each do |name|
       FileUtils.cp(ROOT / name, folder / name, preserve: true)
     end
     FileUtils.cp_r(ROOT / 'scripts', folder / 'scripts')
@@ -379,19 +604,17 @@ class MigrationTests < Minitest::Test
     assert_equal before, (@home / 'state/bootstrap-omarchy/migrations').children.sort
   end
 
-  def test_runner_continues_after_starship_decline_without_marking_it_complete
+  def test_runner_continues_after_hardware_skip_without_recording_completion
     folder = fixture
-    FileUtils.cp(ROOT / '09-add-starship-prompt', folder / '09-add-starship-prompt')
-    (folder / 'config').open('a') { |stream| stream.write("starshipFlag=true\n") }
-    result = bash('./migration', cwd: folder, input: "N\n")
+    (folder / '09-test-skip').write('if [[ ${skipFlag:-false} != true ]]; then return 0; fi; return 77')
+    (folder / 'config').open('a') { |stream| stream.write("skipFlag=true\n") }
+    result = bash('./migration', cwd: folder)
     assert_success result
-    assert_includes result.stdout, '09-add-starship-prompt skipped by request; continuing'
+    assert_includes result.stdout, '09-test-skip skipped by request; continuing'
     assert_equal 'run', (@home / 'runs').read
     markers = (@home / 'state/bootstrap-omarchy/migrations').children
     assert_equal 1, markers.length
     assert markers.first.basename.to_s.start_with?('10-test-')
-    assert_success bash('./migration --resume', cwd: folder, input: "N\n")
-    assert_equal 'run', (@home / 'runs').read
   end
 
   def test_runner_never_marks_failed_step_complete

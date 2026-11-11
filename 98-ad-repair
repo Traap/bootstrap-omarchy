@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Repair DNS, NSS and home-directory creation for an existing AD setup.
-if [[ ${adRejoinFlag:-false} != true ]]; then
+if [[ ${adRepairFlag:-false} != true ]]; then
   log_info 'Active Directory repair skipped.'
   return 0
 fi

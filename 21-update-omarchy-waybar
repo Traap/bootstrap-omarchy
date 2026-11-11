@@ -8,6 +8,11 @@ else
   return;
 fi
 
+[[ ${targetProfile:-desktop} == legacy-waybar ]] || {
+  log_fail '21-update-omarchy-waybar requires targetProfile=legacy-waybar.'
+  return 1
+}
+
 source_dir="$dotfiles/waybar"
 target="$HOME/.config/waybar"
 [[ -d $source_dir ]] || { log_fail "Waybar configuration not found: $source_dir"; return 1; }

@@ -1,0 +1,74 @@
+#!/usr/bin/env bash
+# DisplayLink is dock-specific and does not imply ThinkPad/TLP setup.
+if [[ ${displayLinkFlag:-false} != true ]]; then
+  log_info 'DisplayLink support skipped.'
+  return 0
+fi
+require_cmd lsusb yay
+if have_cmd lsusb && lsusb | grep -i 'DisplayLink' >/dev/null; then
+  log_info "DisplayLink dock detected — installing DKMS-managed EVDI support."
+
+  kernel_ver="$(uname -r)"
+  kernel_base_file="/usr/lib/modules/$kernel_ver/pkgbase"
+  [[ -r $kernel_base_file ]] || { log_fail "Cannot identify the running kernel package; reboot into an installed kernel."; return 1; }
+  kernel_base=$(< "$kernel_base_file")
+  [[ $kernel_base =~ ^[a-zA-Z0-9._+-]+$ ]] || { log_fail 'Invalid kernel package name.'; return 1; }
+  if ! sudo pacman -S --noconfirm --noprogressbar --needed dkms "${kernel_base}-headers"; then
+    log_fail "DKMS/header installation failed."
+    return 1
+  fi
+
+  # This legacy provider satisfies displaylink's `evdi` dependency but does not
+  # build against current kernels. Remove it and displaylink together so pacman
+  # never sees a temporarily broken dependency or an interactive conflict.
+  if pacman -Qq evdi-amd-vmap-texture &>/dev/null; then
+    log_info "Replacing incompatible evdi-amd-vmap-texture with evdi-dkms."
+    conflicting_pkgs=(evdi-amd-vmap-texture)
+    pacman -Qq displaylink &>/dev/null && conflicting_pkgs+=(displaylink)
+    if ! sudo pacman -R --noconfirm --noprogressbar "${conflicting_pkgs[@]}"; then
+      log_fail "Failed to remove the incompatible EVDI provider."
+      return 1
+    fi
+  fi
+
+  if ! yay -S --noconfirm --noprogressbar --needed evdi-dkms displaylink; then
+    log_fail "DisplayLink/EVDI installation failed."
+    return 1
+  fi
+
+  # Remove the obsolete service created by older versions of this migration.
+  # displaylink.service already runs modprobe evdi before starting the manager.
+  if [[ -e /etc/systemd/system/evdi-load.service || -L /etc/systemd/system/multi-user.target.wants/evdi-load.service ]]; then
+    log_info "Removing obsolete kernel-pinned EVDI preload service."
+    sudo systemctl disable --now evdi-load.service 2>/dev/null || true
+    sudo rm -f /etc/systemd/system/evdi-load.service
+    sudo systemctl daemon-reload
+  fi
+
+  log_info "Building EVDI for kernel ${kernel_ver}."
+  if sudo dkms autoinstall -k "$kernel_ver" && sudo depmod -a "$kernel_ver" && modinfo -k "$kernel_ver" evdi &>/dev/null; then
+    log_pass "EVDI is installed for kernel ${kernel_ver}."
+  else
+    log_fail "EVDI failed to build for kernel ${kernel_ver}; DisplayLink outputs will not work."
+    return 1
+  fi
+
+  if sudo modprobe evdi; then
+    log_pass "EVDI module loaded."
+    sudo systemctl enable --now displaylink.service
+    sudo systemctl restart displaylink.service
+  else
+    log_warn "EVDI modprobe failed; leaving DisplayLink stopped."
+    sudo systemctl stop displaylink.service 2>/dev/null || true
+    return 1
+  fi
+
+  systemctl is-active --quiet displaylink.service \
+    && log_pass "displaylink.service active." \
+    || { log_fail "displaylink.service inactive."; return 1; }
+else
+  log_info 'No DisplayLink dock detected; retry with the dock connected.'
+  return 77
+fi
+
+# -------------------------------------------------------------------------- }}}
