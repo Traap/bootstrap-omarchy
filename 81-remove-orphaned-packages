@@ -9,7 +9,16 @@ else
 fi
 
 # Removed orphaned packages.
-mapfile -t orphans < <(pacman -Qdtq 2>/dev/null || true)
+# pacman exits 1 for an empty result. Verify database access separately.
+pacman -Qq >/dev/null
+orphan_list=$(pacman -Qdtq) || {
+  orphan_status=$?
+  [[ $orphan_status == 1 && -z $orphan_list ]] || return "$orphan_status"
+}
+orphans=()
+if [[ -n $orphan_list ]]; then
+  mapfile -t orphans <<< "$orphan_list"
+fi
 if ((${#orphans[@]})); then
   sudo pacman -Rns --noconfirm "${orphans[@]}"
 else

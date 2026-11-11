@@ -11,10 +11,7 @@ fi
 # Add Brave browser
 if ! command -v curl &>/dev/null; then
   log_fail "curl command not found — ensure curl is installed."
-  return;
+  return 1
 fi
 
-installer="$(mktemp)"
-curl --proto '=https' --tlsv1.2 -fsSL https://dl.brave.com/install.sh -o "$installer"
-sh "$installer"
-rm -f "$installer"
+run_installer "https://dl.brave.com/install.sh" sh

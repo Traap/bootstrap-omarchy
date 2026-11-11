@@ -14,7 +14,7 @@ fi
 tex_packages=(
   "texlive-bin"
   "texlive-binextra"
-  "texlive-core"
+  "texlive-basic"
   "texlive-latexextra"
   "texlive-music"
   "texlive-pictures"
@@ -24,4 +24,4 @@ tex_packages=(
   "texlive-fontsextra"
 )
 
-yay -S --noconfirm  --noprogressbar --needed "${tex_packages[@]}"
+sudo pacman -S --noconfirm  --noprogressbar --needed "${tex_packages[@]}"

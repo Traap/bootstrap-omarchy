@@ -59,7 +59,7 @@ omarchyChromiumBrowserFlag=false
 # Remove Omarchy's packaged Neovim (not personal git version).
 omarchyNvimFlag=false
 
-# Install OpenSSL libraries and dev headers.
+# Install OpenSSH and OpenSSL (server startup is controlled by sshServerFlag).
 openSSLFlag=false
 
 # Remove orphaned packages via pacman -Rns.
@@ -80,20 +80,20 @@ railsFlag=false
 # Install Ruby via mise (controlled by rubyVersion).
 rubyFlag=false
 
-# Configure Omarchy seamless-login (kerberos env propagation, ssh-agent, etc.).
-seamlessLoginFlag=false
-
 # Link a Quattro Omarchy Shell configuration from $dotfiles/omarchy/shell.json.
 shellConfigFlag=false
 
-# Disable and remove all snapshots exept current one.
+# Disable automatic snapshot timers/services; preserve existing snapshots.
 snapshotFlag=false
 
 # Install Starship Prompt
 starshipFlag=false
 
-# Create host SSH keys or import predefined host identities.
+# Create a personal SSH authentication key named after archHostName.
 sshHostKeyFlag=false
+
+# Enable incoming SSH connections after installing OpenSSH.
+sshServerFlag=true
 
 # Create symlinks from dotfiles into $HOME.
 symlinksFlag=false

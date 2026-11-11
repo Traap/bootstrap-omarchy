@@ -22,8 +22,54 @@ Validate and preview the ordered steps before applying them:
 ./migration --resume
 ```
 
-`--resume` records successful steps by a hash of both the step and `config`, so
-changing a flag or editing a step makes it eligible to run again.
+`--resume` records enabled steps only after success. Its hash includes the
+step, `config`, shared helpers, templates, and relevant
+personal configuration files. Editing these inputs makes the step eligible to
+run again. Changes to the installed system or remote installers are not tracked;
+rerun the step without `--resume` to reapply it.
+
+Answering `N` to the Starship installation prompt skips that step and continues
+the migration. Declined steps do not receive completion markers and are offered
+again on later runs. Step exit code 77 is reserved for an intentional skip.
+
+Steps run in separate Bash processes with strict error handling. Python 3 is
+required by the runner; common user-tool paths are initialized for every step.
+Existing configuration is backed up beside its original path in a unique
+`*.bak.XXXXXXXX/original` location before replacement. Existing checkouts are
+preserved rather than reset or deleted.
+
+`sshServerFlag=true` enables incoming SSH connections when the OpenSSH step is
+enabled. The SSH key step refuses to replace an unrelated existing `~/.ssh`
+directory; reconcile that directory with `$cloneRoot/ssh` before running it.
+New personal keys prompt for a passphrase.
+
+The tmux steps create `~/.config/tmux -> $cloneRoot/tmux` (or use
+`$XDG_CONFIG_HOME/tmux`), backing up an existing config directory. Matching
+legacy `~/.tmux` and `~/.tmux.conf` symlinks are removed; unrelated paths are
+preserved. Plugin installation initializes TPM in a
+temporary tmux server and leaves existing sessions untouched.
+
+Python CLI applications use pipx, and Ruby/Node commands run through explicit
+mise runtimes. WSL configuration is changed only by the WSL step. Snapshot
+setup disables automatic units and preserves existing snapshots.
+
+VPN setup uses the upstream-supported [Arch package](https://github.com/ancwrd1/snx-rs/blob/main/docs/installation.md)
+and [per-user command-mode configuration](https://github.com/ancwrd1/snx-rs/blob/main/docs/quick-start.md).
+It retains the configured server IP and enables certificate checks. A trusted
+certificate must identify that IP or the configured hostname. No VPN connection
+is started by the installer.
+
+AD steps require domain DNS, synchronized time, credentials, and
+site-appropriate PAM authentication policy.
+
+Run the isolated Ruby regression checks with Minitest (install once if needed):
+
+```bash
+gem install minitest -v '~> 5.0'
+ruby tests/test_migrations.rb
+```
+
+See [SCRIPT-REVIEW.md](SCRIPT-REVIEW.md) for the original audit and fix status.
 
 Open `config` and toggle `false` → `true` for the applications you want
 installed or removed.
@@ -174,7 +220,7 @@ These files are non-negotiable. They’re my superpowers.
               │  - nodejs / ruby / go     - ssh keys / starship        │
               │  - TeX Live               - certificates / OpenSSL     │
               │  - clone repositories     - ThinkPad support           │
-              │  - Kerberos configs       - seamless login             │
+              │  - Kerberos configs       - locale generation          │
               └────────────────────────────────────────────────────────┘
                                       │
                                       ▼

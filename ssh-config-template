@@ -2,7 +2,7 @@
 Host github.com
   Hostname ssh.github.com
   Port 443
-  User GIT-USER-NAME
+  User git
   IdentityFile ~/.ssh/ARCH-HOST-NAME
 
 # All Hosts

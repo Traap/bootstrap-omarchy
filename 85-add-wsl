@@ -8,14 +8,21 @@ else
   return;
 fi
 
-# Create wsl.conf from template.
-template=wsl-template.conf
-conf=/etc/wsl.conf
-sudo cp -v $template $conf
-
-
-# Replace WSL-HOST-HAME with archHostName
-sudo sed -i "s/WSL-HOST-NAME/$archHostName/g" $conf
-
-# Replace WSL-USER-HAME
-sudo sed -i "s/WSL-USER-NAME/$archUserName/g" $conf
+is_wsl || { log_fail "WSL configuration requested on a non-WSL kernel."; return 1; }
+require_cmd python3
+[[ $archHostName =~ ^[[:alnum:]][[:alnum:].-]*$ && $archUserName =~ ^[a-z_][a-z0-9_-]*\$?$ ]] || {
+  log_fail "Invalid WSL hostname or user name."
+  return 1
+}
+(
+  wsl_config=$(mktemp)
+  trap 'rm -f -- "$wsl_config"' EXIT
+  if sudo test -f /etc/wsl.conf; then
+    sudo cat /etc/wsl.conf
+  else
+    cat "$MIGRATION_ROOT/wsl-template.conf"
+  fi | python3 "$MIGRATION_ROOT/scripts/merge-ini.py" \
+    network hostname "$archHostName" user default "$archUserName" \
+    interop enabled true interop appendWindowsPath false > "$wsl_config"
+  install_system_file "$wsl_config" /etc/wsl.conf
+)

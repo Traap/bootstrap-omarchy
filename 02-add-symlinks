@@ -15,34 +15,13 @@ createSymLinks() {
   log_info "Creating symbolic links."
   mkdir -p ~/.config
 
-    safe_link() {
-      local source_path=$1 target_path=$2 backup_path
-      [[ -e $source_path || -L $source_path ]] || {
-        log_warn "Source does not exist; skipping: $source_path"
-        return 0
-      }
-
-      if [[ -L $target_path && $(readlink -f -- "$target_path") == $(readlink -f -- "$source_path") ]]; then
-        log_info "Link already correct: $target_path"
-        return 0
-      fi
-
-      if [[ -e $target_path || -L $target_path ]]; then
-        backup_path="${target_path}.bak.$(date +%Y%m%d-%H%M%S)"
-        mv -v -- "$target_path" "$backup_path"
-        log_warn "Backed up existing path to $backup_path"
-      fi
-
-      mkdir -p -- "$(dirname -- "$target_path")"
-      ln -s -- "$source_path" "$target_path"
-    }
-
     # Symlinks at .config
     safe_link "$dotfiles/ghostty"                "$HOME/.config/ghostty"
     safe_link "$dotfiles/gits"                   "$HOME/.config/gits"
     safe_link "$dotfiles/starship/starship.toml" "$HOME/.config/starship.toml"
     safe_link "$dotfiles/yazi"                   "$HOME/.config/yazi"
     safe_link "$cloneRoot/nvim.traap"            "$HOME/.config/nvim"
+    configure_tmux_links "$cloneRoot/tmux"
 
     # Symlinks at $HOME
     safe_link "$dotfiles/bash/inputrc"          "$HOME/.inputrc"
@@ -51,9 +30,7 @@ createSymLinks() {
     safe_link "$dotfiles/git/gitignore_global"  "$HOME/.gitignore_global"
     safe_link "$dotfiles/latex/latexmkrc"       "$HOME/.latexmkrc"
     safe_link "$cloneRoot/ssh/config.vim"       "$HOME/.config.vim"
-    safe_link "$cloneRoot/ssh"                  "$HOME/.ssh"
-    safe_link "$cloneRoot/tmux"                 "$HOME/.tmux"
-    safe_link "$cloneRoot/tmux/tmux.conf"       "$HOME/.tmux.conf"
+    # SSH directory reconciliation belongs to 04-add-ssh-keys.
     safe_link "$cloneRoot/vim"                  "$HOME/.vim"
     safe_link "$cloneRoot/vim/vimrc"            "$HOME/.vimrc"
 }

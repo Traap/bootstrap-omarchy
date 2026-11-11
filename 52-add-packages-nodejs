@@ -19,13 +19,7 @@ nodejs_packages=(
   "yarn"
 )
 
-# Use lastest node version.s
-mise use node
-
-sudo env "PATH=$PATH" npm install -g "${nodejs_packages[@]}" \
-   && log_pass "NodeJS packages installed." \
-   || log_fail "Failed to install NodeJS packages."
-
-sudo env "PATH=$PATH" npm audit fix --force \
-  && log_pass "NodeJS audit." \
-  || log_fail "NodfJS audit failed."
+require_cmd mise
+mise use --global node@latest
+mise exec node@latest -- npm install -g "${nodejs_packages[@]}"
+log_pass "NodeJS packages installed."

@@ -13,7 +13,7 @@ usage() {
 Usage: ./migration [--dry-run] [--resume] [--step NAME]
 
   --dry-run    Validate and list enabled migration steps without running them.
-  --resume     Skip steps completed for the current script and config contents.
+  --resume     Skip steps completed for the current migration inputs.
   --step NAME  Run only the named migration file.
 EOF
 }
@@ -39,7 +39,7 @@ mapfile -t scripts < <(find "$MIGRATION_ROOT" -maxdepth 1 -type f \
 ((${#scripts[@]})) || { echo "No migration steps found in $MIGRATION_ROOT" >&2; exit 1; }
 
 if [[ -n $selected_step ]]; then
-  [[ $selected_step != */* && -f "$MIGRATION_ROOT/$selected_step" ]] || {
+  [[ $selected_step =~ ^[0-9][0-9]-[^/]+$ && -f "$MIGRATION_ROOT/$selected_step" ]] || {
     echo "Unknown migration step: $selected_step" >&2
     exit 2
   }
@@ -47,22 +47,46 @@ if [[ -n $selected_step ]]; then
 fi
 
 echo "=== Validating migrations ==="
-bash -n "$MIGRATION_ROOT/functions" "$MIGRATION_ROOT/config" "$MIGRATION_ROOT/migration"
+for shared in functions config migration scripts/ad-access.sh; do
+  bash -n "$MIGRATION_ROOT/$shared"
+done
 for script in "${scripts[@]}"; do
   bash -n "$MIGRATION_ROOT/$script"
 done
 
-if $dry_run; then
-  echo "=== Migration dry run ==="
-  printf 'Would evaluate: %s\n' "${scripts[@]}"
-  exit 0
+source "$MIGRATION_ROOT/functions"
+source "$MIGRATION_ROOT/config"
+require_cmd python3
+
+# Every numbered script has a primary flag in its initial guard.
+step_flag() {
+  local line pattern='\$\{?([[:alnum:]_]+Flag)'
+  while IFS= read -r line; do
+    if [[ $line =~ $pattern ]]; then
+      printf '%s\n' "${BASH_REMATCH[1]}"
+      return 0
+    fi
+  done < "$MIGRATION_ROOT/$1"
+  log_fail "No primary flag found for $1" >&2
+  return 1
+}
+
+if ! $dry_run; then
+  mkdir -p "$STATE_DIR"
 fi
 
-mkdir -p "$STATE_DIR"
-echo "=== Migration started ==="
-
 for script in "${scripts[@]}"; do
-  digest="$(sha256sum "$MIGRATION_ROOT/$script" "$MIGRATION_ROOT/config" | sha256sum | cut -d' ' -f1)"
+  flag=$(step_flag "$script")
+  case ${!flag:-false} in
+    false) echo "$script disabled ($flag=false); skipping."; continue ;;
+    true) ;;
+    *) echo "Invalid boolean for $flag: ${!flag}" >&2; exit 2 ;;
+  esac
+  if $dry_run; then
+    echo "Would run: $script ($flag=true)"
+    continue
+  fi
+  digest=$(python3 "$MIGRATION_ROOT/scripts/migration-digest.py" "$MIGRATION_ROOT" "$script" "$dotfiles" "$cloneRoot")
   marker="$STATE_DIR/$script-$digest"
   if $resume && [[ -f $marker ]]; then
     echo "$script was already completed; skipping."
@@ -70,16 +94,28 @@ for script in "${scripts[@]}"; do
   fi
 
   echo "$script is running."
+  step_status=0
   bash -euo pipefail -c '
     source "$MIGRATION_ROOT/functions"
     source "$MIGRATION_ROOT/config"
     cd "$MIGRATION_ROOT"
     source "$MIGRATION_ROOT/$1"
-  ' bash "$script"
-  touch "$marker"
+  ' bash "$script" || step_status=$?
+  if [[ $step_status == 77 ]]; then
+    echo "$script skipped by request; continuing without a completion marker."
+    continue
+  elif [[ $step_status != 0 ]]; then
+    echo "$script failed (exit $step_status)." >&2
+    exit "$step_status"
+  fi
+  # Recompute after setup: a successful step can create one of its inputs.
+  digest=$(python3 "$MIGRATION_ROOT/scripts/migration-digest.py" "$MIGRATION_ROOT" "$script" "$dotfiles" "$cloneRoot")
+  touch "$STATE_DIR/$script-$digest"
   echo "$script has completed."
-  echo
 done
 
-echo "=== Tha-Tha-Tha That's all, folks! ==="
-echo "=== Porky Pig, Looney Tunes and Merrie Melodies, 1937 ==="
+if $dry_run; then
+  echo "=== Dry run complete; no steps executed ==="
+else
+  echo "=== Migration complete ==="
+fi

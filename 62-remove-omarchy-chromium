@@ -9,8 +9,8 @@ else
 fi
 
 # Cromium may not not be allowed on some computers.
-if command -v omarchy-chromium &>/dev/null; then
-  sudo pacman -Rns omarchy-chromium
+if pacman -Q omarchy-chromium &>/dev/null; then
+  sudo pacman -Rns --noconfirm omarchy-chromium
 else
   log_info "Omarchy Chromium Browser is not installed."
 fi

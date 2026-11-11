@@ -1,16 +1,35 @@
 #!/usr/bin/env bash
-# tmuxplugins
 
-if [[ ${tmuxPluginsFlag:-false} == true ]]; then
-  log_info 'Installing tmux plugins.'
-else
+if [[ ${tmuxPluginsFlag:-false} != true ]]; then
   log_info 'Tmux plugins skipped.'
-  return;
+  return 0
 fi
 
-# Installing tmux plugins.
+require_cmd tmux git
 src=https://github.com/tmux-plugins/tpm.git
-dst=$cloneRoot/tmux/plugins/tpm
-git clone "$src" "$dst"
-log_info 'Loading TMUX plugins.'
-~/.tmux/plugins/tpm/bin/install_plugins
+plugin_dir="$cloneRoot/tmux/plugins"
+dst="$plugin_dir/tpm"
+tmux_config="$cloneRoot/tmux/tmux.conf"
+[[ -f $tmux_config ]] || { log_fail "tmux configuration is missing: $tmux_config"; return 1; }
+ensure_clone "$src" "$dst"
+[[ -x $dst/bin/install_plugins ]] || { log_fail "TPM installer is missing: $dst/bin/install_plugins"; return 1; }
+
+# The directory link keeps config, plugins, and future files in one location.
+configure_tmux_links "$cloneRoot/tmux"
+
+log_info 'Installing TMUX plugins.'
+(
+  # TPM queries a tmux server for TMUX_PLUGIN_MANAGER_PATH. An isolated server
+  # works before the first session and leaves any existing sessions untouched.
+  tpm_work=$(mktemp -d)
+  export TPM_INSTALL_TMUX
+  TPM_INSTALL_TMUX=$(type -P tmux)
+  export TPM_INSTALL_SOCKET="$tpm_work/tmux.sock"
+  trap '"$TPM_INSTALL_TMUX" -S "$TPM_INSTALL_SOCKET" kill-server >/dev/null 2>&1 || true; rm -rf -- "$tpm_work"' EXIT
+  tmux() { "$TPM_INSTALL_TMUX" -S "$TPM_INSTALL_SOCKET" "$@"; }
+  export -f tmux
+  tmux -f /dev/null start-server \; set-option -g exit-empty off \; \
+    set-environment -g TMUX_PLUGIN_MANAGER_PATH "$plugin_dir/"
+  "$dst/bin/install_plugins"
+)
+log_pass 'TMUX plugins installed; the linked configuration loads them when tmux starts.'

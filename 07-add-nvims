@@ -9,9 +9,5 @@ else
 fi
 
 # Install Traap's nvims - Neovim switching tool
-url="https://raw.githubusercontent.com/Traap/nvims/master/install.sh"
-installer="$(mktemp)"
-curl --proto '=https' --tlsv1.2 -fsSL "$url" -o "$installer"
-/bin/bash "$installer"
-rm -f "$installer"
+run_installer "https://raw.githubusercontent.com/Traap/nvims/master/install.sh" bash
 hash -r

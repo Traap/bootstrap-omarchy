@@ -1,14 +1,21 @@
 #!/usr/bin/env bash
-# starship
 
-if [[ ${starshipFlag:-false} == true ]]; then
-  log_info 'Installing Starship Prompt.'
-else
+if [[ ${starshipFlag:-false} != true ]]; then
   log_info 'Starship Prompt skipped.'
-  return;
+  return 0
 fi
 
-installer="$(mktemp)"
-curl --proto '=https' --tlsv1.2 -fsSL https://starship.rs/install.sh -o "$installer"
-sh "$installer"
-rm -f "$installer"
+# Upstream uses exit 1 for both cancellation and errors. Confirm here so the
+# runner can distinguish an intentional skip from a failed installation.
+starship_answer=''
+IFS= read -r -p 'Install/update Starship? [y/N] ' starship_answer || starship_answer=''
+case ${starship_answer,,} in
+  y|yes) ;;
+  *)
+    log_info 'Starship installation declined; continuing migration.'
+    return 77
+    ;;
+esac
+
+log_info 'Installing Starship Prompt.'
+run_installer "https://starship.rs/install.sh" sh --yes

@@ -8,13 +8,6 @@ else
   return;
 fi
 
-# Update mirrors
-log_info 'Initialize pacman-key'
-sudo pacman-key --init
-
-log_info 'Populate pacman-key with archlinux'
-sudo pacman-key --populate archlinux
-
 if ! command -v reflector &>/dev/null; then
   log_info 'Install reflector'
   sudo pacman -S --noconfirm --noprogressbar --needed reflector
@@ -23,4 +16,13 @@ else
 fi
 
 log_info "Updating mirrors for ${reflectorLocation}"
-sudo reflector -c "${reflectorLocation}" -f 12 -l 10 -n 12  --save /etc/pacman.d/mirrorlist
+(
+  mirrorlist=$(mktemp)
+  trap 'rm -f -- "$mirrorlist"' EXIT
+  reflector -c "$reflectorLocation" -f 12 -l 10 -n 12 --save "$mirrorlist"
+  grep -q '^Server[[:space:]]*=' "$mirrorlist" || {
+    log_fail "Reflector produced no usable servers."
+    exit 1
+  }
+  install_system_file "$mirrorlist" /etc/pacman.d/mirrorlist
+)

@@ -23,3 +23,135 @@ export -f log_pass
 export -f log_fail
 export -f have_cmd
 export -f root_required
+
+# Shared migration primitives. Keep logging separate from exit status.
+require_cmd() {
+  local cmd
+  for cmd in "$@"; do
+    if ! have_cmd "$cmd"; then
+      log_fail "Required command not found: $cmd"
+      return 1
+    fi
+  done
+}
+
+backup_path() {
+  local path=$1 backup
+  [[ -e $path || -L $path ]] || return 0
+  backup=$(mktemp -d -- "${path}.bak.XXXXXXXX") || return 1
+  mv -- "$path" "$backup/original" || return 1
+  log_warn "Backed up $path to $backup/original"
+}
+
+safe_link() {
+  local source_path=$1 target_path=$2
+  [[ -e $source_path ]] || {
+    log_warn "Source does not exist; skipping: $source_path"
+    return 0
+  }
+  if [[ -L $target_path && $(readlink -f -- "$target_path") == $(readlink -f -- "$source_path") ]]; then
+    return 0
+  fi
+  mkdir -p -- "$(dirname -- "$target_path")" || return 1
+  backup_path "$target_path" || return 1
+  ln -s -- "$source_path" "$target_path"
+}
+
+# Run installers in a subshell so cleanup cannot replace the caller's traps.
+run_installer() (
+  local url=$1 interpreter=$2 installer
+  shift 2
+  require_cmd curl "$interpreter" || return 1
+  installer=$(mktemp) || return 1
+  trap 'rm -f -- "$installer"' EXIT
+  curl --proto '=https' --tlsv1.2 -fsSL "$url" -o "$installer" || return 1
+  "$interpreter" "$installer" "$@"
+)
+
+ensure_clone() {
+  local url=$1 destination=$2 origin
+  require_cmd git || return 1
+  if [[ -e $destination || -L $destination ]]; then
+    [[ -d $destination/.git ]] || {
+      log_fail "Existing destination is not a checkout: $destination"
+      return 1
+    }
+    origin=$(git -C "$destination" remote get-url origin) || return 1
+    [[ ${origin%.git} == "${url%.git}" ]] || {
+      log_fail "Unexpected origin for $destination: $origin"
+      return 1
+    }
+    log_info "Preserving existing checkout: $destination"
+  else
+    mkdir -p -- "$(dirname -- "$destination")" || return 1
+    git clone -- "$url" "$destination" || return 1
+  fi
+}
+
+is_wsl() { [[ -r /proc/sys/kernel/osrelease ]] && grep -qi microsoft /proc/sys/kernel/osrelease; }
+
+# Runtime initialization is repeated by the runner for every isolated step.
+export PATH="$HOME/.local/bin:$HOME/.local/share/mise/shims:$PATH"
+export -f require_cmd backup_path safe_link run_installer ensure_clone is_wsl
+
+backup_system_file() {
+  local path=$1 backup
+  if sudo test -e "$path" || sudo test -L "$path"; then
+    backup=$(sudo mktemp -d -- "${path}.bak.XXXXXXXX") || return 1
+    sudo cp -a -- "$path" "$backup/original" || return 1
+    log_warn "Backed up $path to $backup/original"
+  fi
+}
+
+install_system_file() {
+  local source_path=$1 target_path=$2 mode=${3:-0644}
+  if sudo cmp -s -- "$source_path" "$target_path"; then
+    sudo chmod "$mode" -- "$target_path" || return 1
+    return 0
+  fi
+  backup_system_file "$target_path" || return 1
+  sudo install -m "$mode" -- "$source_path" "$target_path"
+}
+
+active_interface() {
+  local route
+  route=$(ip route get "${1:-1.1.1.1}" 2>/dev/null) || route=''
+  if [[ $route =~ [[:space:]]dev[[:space:]]+([^[:space:]]+) ]]; then
+    printf '%s\n' "${BASH_REMATCH[1]}"
+  else
+    ip -o link show up | awk -F': ' '$2 !~ /^lo(@|$)/ {sub(/@.*/, "", $2); print $2; exit}'
+  fi
+}
+export -f backup_system_file install_system_file active_interface
+
+install_user_file() {
+  local source_path=$1 target_path=$2 mode=${3:-0644}
+  if [[ ! -L $target_path ]] && cmp -s -- "$source_path" "$target_path"; then
+    chmod "$mode" -- "$target_path"
+    return 0
+  fi
+  mkdir -p -- "$(dirname -- "$target_path")" || return 1
+  backup_path "$target_path" || return 1
+  install -m "$mode" -- "$source_path" "$target_path"
+}
+export -f install_user_file
+
+configure_tmux_links() {
+  local tmux_source=$1 legacy expected
+  [[ -f $tmux_source/tmux.conf ]] || {
+    log_warn "tmux configuration is missing; skipping links: $tmux_source/tmux.conf"
+    return 0
+  }
+  safe_link "$tmux_source" "${XDG_CONFIG_HOME:-$HOME/.config}/tmux" || return 1
+  for legacy in "$HOME/.tmux" "$HOME/.tmux.conf"; do
+    expected=$tmux_source
+    [[ $legacy != "$HOME/.tmux.conf" ]] || expected="$tmux_source/tmux.conf"
+    if [[ -L $legacy && $(readlink -m -- "$legacy") == $(readlink -m -- "$expected") ]]; then
+      unlink -- "$legacy" || return 1
+      log_info "Removed legacy tmux link: $legacy"
+    elif [[ -e $legacy || -L $legacy ]]; then
+      log_warn "Preserving unrelated legacy tmux path: $legacy"
+    fi
+  done
+}
+export -f configure_tmux_links

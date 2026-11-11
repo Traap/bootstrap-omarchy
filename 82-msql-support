@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 97-thinkpad-support — Omarchy ThinkPad setup (sudo-safe, idempotent, non-fatal)
+# MS SQL client dependencies
 set -euo pipefail
 
 # ---------------------------------------------------------------------------
@@ -13,7 +13,7 @@ else
 fi
 
 # Install MS SQL Suppport
-sudo pacman -S --needed unixodbc freetds
+sudo pacman -S --noconfirm --noprogressbar --needed unixodbc freetds
 hash -r
 
 # TODO: Confirm the following are not needed

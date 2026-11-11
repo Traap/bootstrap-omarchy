@@ -12,7 +12,6 @@ fi
 pacman_packages=(
   "base-devel"
   "cmake"
-  "docker"
   "ghostty"
   "less"
   "luacheck"

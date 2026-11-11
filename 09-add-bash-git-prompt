@@ -8,5 +8,4 @@ else
   return;
 fi
 
-rm -rf ~/.bash-git-prompt
-git clone https://github.com/magicmonty/bash-git-prompt ~/.bash-git-prompt
+ensure_clone https://github.com/magicmonty/bash-git-prompt "$HOME/.bash-git-prompt"

@@ -11,10 +11,7 @@ fi
 # A mise-managed Ruby can coexist with distribution packages. Do not remove
 # packages that Omarchy or another application may depend on.
 
-if command -v mise &>/dev/null; then
-  mise use -g "$rubyVersion" && log_pass "Ruby installed via mise."
-  hash -r
-else
-  log_fail "mise not found — cannot install Ruby."
-  return;
-fi
+require_cmd mise
+mise use --global "$rubyVersion"
+mise exec "$rubyVersion" -- ruby --version
+log_pass "Ruby installed via mise."

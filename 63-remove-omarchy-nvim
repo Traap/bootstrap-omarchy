@@ -9,8 +9,8 @@ else
 fi
 
 # Remove Omarch Nvim
-if command -v omarchy-nvim &>/dev/null; then
-  sudo pacman -Rns omarchy-nvim
+if pacman -Q omarchy-nvim &>/dev/null; then
+  sudo pacman -Rns --noconfirm omarchy-nvim
 else
   log_info "Omarchy nvim is not installed."
 fi

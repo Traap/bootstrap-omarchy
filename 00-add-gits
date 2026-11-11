@@ -9,18 +9,18 @@ else
 fi
 
 # Install Traap gits
-url="https://raw.githubusercontent.com/Traap/gits/master/install.sh"
-installer="$(mktemp)"
-curl --proto '=https' --tlsv1.2 -fsSL "$url" -o "$installer"
-/bin/bash "$installer"
-rm -f "$installer"
+run_installer "https://raw.githubusercontent.com/Traap/gits/master/install.sh" bash
 
-# Replace repository_locations provided with gits package.
-mkdir -p ~/.config/gits
-cp -v repository_locations.yml ~/.config/gits
+# Render the bundled locations with the same root used by the other steps.
+require_cmd python3
+(
+  locations=$(mktemp)
+  trap 'rm -f -- "$locations"' EXIT
+  python3 "$MIGRATION_ROOT/scripts/repository-locations.py" "$MIGRATION_ROOT/repository_locations.yml" "$cloneRoot" > "$locations"
+  config_path="${XDG_CONFIG_HOME:-$HOME/.config}/gits/repository_locations.yml"
+  install_user_file "$locations" "$config_path"
+)
+require_cmd gits
 
-# Add to PATH if needed
-export PATH="${PATH}:${HOME}/.local/bin"
-
-# Rehash cached commands
+# Rehash cached commands. Runtime paths are initialized in functions.
 hash -r

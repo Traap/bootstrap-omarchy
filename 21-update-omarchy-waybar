@@ -12,9 +12,4 @@ source_dir="$dotfiles/waybar"
 target="$HOME/.config/waybar"
 [[ -d $source_dir ]] || { log_fail "Waybar configuration not found: $source_dir"; return 1; }
 
-if [[ -e $target || -L $target ]]; then
-  backup="$target.bak.$(date +%Y%m%d-%H%M%S)"
-  mv -v "$target" "$backup"
-  log_warn "Backed up existing Waybar configuration to $backup"
-fi
-ln -s "$source_dir" "$target"
+safe_link "$source_dir" "$target"

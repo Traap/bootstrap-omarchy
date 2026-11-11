@@ -37,10 +37,10 @@ say "Installing ThinkPad drivers and utilities..."
 # -------------------------------------------------------------------------- }}}
 # {{{ Remove conflicts
 
-if systemctl is-enabled power-profiles-daemon.service &>/dev/null; then
+if systemctl is-enabled power-profiles-daemon.service &>/dev/null || systemctl is-active --quiet power-profiles-daemon.service; then
   log_info "Removing power-profiles-daemon (conflicts with TLP)..."
-  sudo systemctl disable --now power-profiles-daemon.service || true
-  sudo pacman -Rns --noconfirm --noprogressbar power-profiles-daemon || true
+  sudo systemctl disable --now power-profiles-daemon.service
+  sudo pacman -Rns --noconfirm --noprogressbar power-profiles-daemon
 fi
 
 # -------------------------------------------------------------------------- }}}
@@ -52,14 +52,14 @@ required_pkgs=(i2c-tools lm_sensors tlp tlp-rdw bolt usbutils)
 optional_pkgs=(acpi_call tp_smapi hdapsd)
 
 for pkg in "${required_pkgs[@]}"; do
-  sudo pacman -Si "$pkg" &>/dev/null && sudo pacman -S --noconfirm  --noprogressbar --needed "$pkg" || log_warn "Failed to install ${pkg}"
+  sudo pacman -S --noconfirm --noprogressbar --needed "$pkg"
 done
 
 for pkg in "${optional_pkgs[@]}"; do
   sudo pacman -Si "$pkg" &>/dev/null && sudo pacman -S --noconfirm  --noprogressbar --needed "$pkg" || true
 done
 
-sudo systemctl enable --now tlp.service || true
+sudo systemctl enable --now tlp.service
 sudo systemctl mask systemd-rfkill.service systemd-rfkill.socket || true
 sudo systemctl enable --now bolt.service || true
 have_cmd boltctl && boltctl list || true
@@ -68,16 +68,20 @@ log_info "Installing thinkfan (AUR)..."
 yay -S --noconfirm --noprogressbar --needed thinkfan || log_warn "thinkfan install failed."
 
 log_info "Detecting sensors..."
-have_cmd sensors-detect && yes '' | sudo sensors-detect --auto || log_warn "sensors-detect failed."
+have_cmd sensors-detect && sudo sensors-detect --auto || log_warn "sensors-detect failed."
 
 # -------------------------------------------------------------------------- }}}
 # {{{ DisplayLink / EVDI — DKMS-managed kernel module
 
-if have_cmd lsusb && lsusb | grep -qi 'DisplayLink'; then
+if have_cmd lsusb && lsusb | grep -i 'DisplayLink' >/dev/null; then
   log_info "DisplayLink dock detected — installing DKMS-managed EVDI support."
 
   kernel_ver="$(uname -r)"
-  if ! sudo pacman -S --noconfirm --noprogressbar --needed dkms linux-headers; then
+  kernel_base_file="/usr/lib/modules/$kernel_ver/pkgbase"
+  [[ -r $kernel_base_file ]] || { log_fail "Cannot identify the running kernel package; reboot into an installed kernel."; return 1; }
+  kernel_base=$(< "$kernel_base_file")
+  [[ $kernel_base =~ ^[a-zA-Z0-9._+-]+$ ]] || { log_fail 'Invalid kernel package name.'; return 1; }
+  if ! sudo pacman -S --noconfirm --noprogressbar --needed dkms "${kernel_base}-headers"; then
     log_fail "DKMS/header installation failed."
     return 1
   fi
@@ -110,7 +114,7 @@ if have_cmd lsusb && lsusb | grep -qi 'DisplayLink'; then
   fi
 
   log_info "Building EVDI for kernel ${kernel_ver}."
-  if sudo dkms autoinstall -k "$kernel_ver" && sudo depmod -a "$kernel_ver" && modinfo evdi &>/dev/null; then
+  if sudo dkms autoinstall -k "$kernel_ver" && sudo depmod -a "$kernel_ver" && modinfo -k "$kernel_ver" evdi &>/dev/null; then
     log_pass "EVDI is installed for kernel ${kernel_ver}."
   else
     log_fail "EVDI failed to build for kernel ${kernel_ver}; DisplayLink outputs will not work."
@@ -119,16 +123,17 @@ if have_cmd lsusb && lsusb | grep -qi 'DisplayLink'; then
 
   if sudo modprobe evdi; then
     log_pass "EVDI module loaded."
-    sudo systemctl enable --now displaylink.service || true
-    sudo systemctl restart displaylink.service || true
+    sudo systemctl enable --now displaylink.service
+    sudo systemctl restart displaylink.service
   else
     log_warn "EVDI modprobe failed; leaving DisplayLink stopped."
     sudo systemctl stop displaylink.service 2>/dev/null || true
+    return 1
   fi
 
   systemctl is-active --quiet displaylink.service \
     && log_pass "displaylink.service active." \
-    || log_warn "displaylink.service inactive."
+    || { log_fail "displaylink.service inactive."; return 1; }
 else
   log_info "No DisplayLink dock detected — skipping EVDI setup."
 fi
@@ -147,10 +152,10 @@ sudo modprobe r8152 || true
 log_bar
 say "ThinkPad Setup Summary"
 log_info "Kernel: $(uname -r)"
-lsmod | grep -q '^evdi' && log_pass "EVDI module loaded." || log_warn "EVDI not loaded."
+lsmod | grep '^evdi' >/dev/null && log_pass "EVDI module loaded." || log_warn "EVDI not loaded."
 systemctl is-active --quiet displaylink.service && log_pass "DisplayLink active." || log_warn "DisplayLink inactive."
 have_cmd tlp-stat && sudo tlp-stat -b | grep -E 'Mode|Charge' || true
-log_pass "ThinkPad driver step completed (non-fatal)."
+log_pass "ThinkPad driver step completed; optional hardware warnings are reported above."
 log_bar
 
 # -------------------------------------------------------------------------- }}}

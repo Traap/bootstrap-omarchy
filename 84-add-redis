@@ -8,9 +8,13 @@ else
   return;
 fi
 
-pacman_packages=(
-  "redis"
-)
-
-sudo pacman -S --noconfirm  --noprogressbar --needed "${pacman_packages[@]}"
-sudo systemctl start redis.service
+# Preserve an existing Redis installation; otherwise use Arch's Redis provider.
+if pacman -Q redis &>/dev/null; then
+  redis_package=redis
+  redis_service=redis.service
+else
+  redis_package=valkey
+  redis_service=valkey.service
+fi
+sudo pacman -S --noconfirm --noprogressbar --needed "$redis_package"
+sudo systemctl enable --now "$redis_service"

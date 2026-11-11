@@ -8,19 +8,24 @@ else
   return;
 fi
 
-# Percise control of your .bash_profile
-echo "# ~/.bash_profile"                                     > ~/.bash_profile
-echo " [[ -f ~/.bashrc ]] && . ~/.bashrc"                   >> ~/.bash_profile
-
-# Precise control of your .bashrc
-echo "# ~/.bashrc"                                           > ~/.bashrc
-echo '# All the default Omarchy aliases and functions'      >> ~/.bashrc
-echo '[[ -f ~/.local/share/omarchy/default/bash/rc ]] && \' >> ~/.bashrc
-echo '    . ~/.local/share/omarchy/default/bash/rc'         >> ~/.bashrc
-echo ''                                                     >> ~/.bashrc
-echo "# Traap's bash personalization"                       >> ~/.bashrc
-echo '[[ -f ~/git/dotfiles/bash/bashrc ]] && \'             >> ~/.bashrc
-echo '    . ~/git/dotfiles/bash/bashrc'                     >> ~/.bashrc
-echo ''                                                     >> ~/.bashrc
-echo "# Don't mess with my .inpurtc"                        >> ~/.bashrc
-echo '[[ -f ~/.inputrc ]] && bind -f ~/.inputrc'            >> ~/.bashrc
+# Render before replacing files; identical reruns need no additional backups.
+(
+  shell_dir=$(mktemp -d)
+  trap 'rm -rf -- "$shell_dir"' EXIT
+  omarchy_bash_rc="${OMARCHY_PATH:-/usr/share/omarchy}/default/bash/rc"
+  if [[ ! -f $omarchy_bash_rc ]]; then
+    omarchy_bash_rc="$HOME/.local/share/omarchy/default/bash/rc"
+  fi
+  printf '%s\n' '# ~/.bash_profile' '[[ -f ~/.bashrc ]] && . ~/.bashrc' > "$shell_dir/bash_profile"
+  {
+    printf '%s\n' '# ~/.bashrc' '# Omarchy defaults'
+    printf '[[ -f %q ]] && . %q\n' "$omarchy_bash_rc" "$omarchy_bash_rc"
+    printf '\n# Personal configuration\n'
+    printf '[[ -f %q ]] && . %q\n' "$dotfiles/bash/bashrc" "$dotfiles/bash/bashrc"
+    printf '\n%s\n' 'if [[ $- == *i* && -f ~/.inputrc ]]; then bind -f ~/.inputrc; fi'
+  } > "$shell_dir/bashrc"
+  bash -n "$shell_dir/bash_profile"
+  bash -n "$shell_dir/bashrc"
+  install_user_file "$shell_dir/bash_profile" "$HOME/.bash_profile"
+  install_user_file "$shell_dir/bashrc" "$HOME/.bashrc"
+)

@@ -2,22 +2,22 @@
 # openssh
 
 if [[ ${openSSLFlag:-false} == true ]]; then
-  log_info 'Install openssl.'
+  log_info 'Installing OpenSSH and OpenSSL.'
 else
   log_info 'openssl skipped.'
   return;
 fi
 
-# Install OpenSSH and OpenbSSL
+# Install OpenSSH and OpenSSL
 log_info "Installing OpenSSH and OpenSSL..."
 sudo pacman -S --noconfirm --noprogressbar --needed openssh openssl
 
-log_info "Enabling and starting sshd service..."
-sudo systemctl enable sshd.service
-sudo systemctl start sshd.service
-
-log_info "Checking sshd status..."
-sudo systemctl --no-pager --full status sshd.service || true
+# Server startup is independent of installing client tools and libraries.
+if [[ ${sshServerFlag:-false} == true ]]; then
+  log_info "Enabling and starting sshd service..."
+  sudo systemctl enable --now sshd.service
+  sudo systemctl --no-pager --full status sshd.service
+fi
 
 log_info "Verifying installed versions"
 ssh -V

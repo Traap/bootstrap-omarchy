@@ -8,5 +8,12 @@ else
   return
 fi
 
-# Clone repositories using gits
-gits clone -r git -v
+# Use a private copy so cloneRoot is honored without overwriting local settings.
+require_cmd gits python3
+(
+  locations_dir=$(mktemp -d)
+  trap 'rm -rf -- "$locations_dir"' EXIT
+  mkdir -p "$locations_dir/gits"
+  python3 "$MIGRATION_ROOT/scripts/repository-locations.py" "$MIGRATION_ROOT/repository_locations.yml" "$cloneRoot" > "$locations_dir/gits/repository_locations.yml"
+  XDG_CONFIG_HOME="$locations_dir" gits clone -r git -v
+)

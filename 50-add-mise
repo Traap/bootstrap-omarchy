@@ -8,5 +8,7 @@ else
   return;
 fi
 
-curl --proto '=https' --tlsv1.2 -fsSL https://mise.run -o /tmp/mise-install.sh
-bash /tmp/mise-install.sh
+run_installer https://mise.run bash
+hash -r
+require_cmd mise
+mise --version

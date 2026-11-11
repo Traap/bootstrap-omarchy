@@ -14,12 +14,10 @@ pip_packages=(
   neovim-remote
 )
 
-if ! command -v python3 &>/dev/null; then
-  log_fail "python3 not found."
-  return
-fi
-
-python3 -m pip install --upgrade pip
-python3 -m pip install "${pip_packages[@]}" \
-  && log_pass "pip packages installed." \
-  || log_fail "Failed to install pip packages."
+# Install CLI applications in isolated environments, not system Python.
+sudo pacman -S --noconfirm --noprogressbar --needed python-pipx
+require_cmd pipx
+for pkg in "${pip_packages[@]}"; do
+  pipx install --force "$pkg"
+done
+log_pass "Python CLI applications installed."
